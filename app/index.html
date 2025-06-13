@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/src/script.ts" defer></script>
+    <script type="module" src="/src/objectCreationOptions.ts" defer></script>
+    <link rel="stylesheet" href="./src/global.css">
+    <link rel="stylesheet" href="./src/style.css">
+    <link rel="stylesheet" href="./src/inspect.css">
+    <title>3D Model</title>
+  </head>
+  <body>
+    <main>
+      <div class="panel" style="grid-area: file;" id="file-panel">
+        <p>icon ;</p>
+        <button>File</button>
+        <button>Edit</button>
+        <button>Render</button>
+        <button>Shading</button>
+        <button>Animation</button>
+        <button>Help</button>
+      </div>
+      <div class="panel" style="grid-area: viewport;" id="viewport-panel">
+        <div id="panel-overlay">
+          <div id="tools">
+            <button class="viewport-button" id="add-object-button">+</button>
+          </div>
+          <div id="pan">
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="grid-area: function;" id="function-panel"></div>
+      <div class="panel" style="grid-area: inspector;" id="inspector-panel"></div>
+    </main>
+    <dialog id="object-creation-modal">
+      <div id="object-creation">
+        <nav>
+          <input type="text" placeholder="search">
+        </nav>
+        <div id="object-creation-options">
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

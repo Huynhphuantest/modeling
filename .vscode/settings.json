@@ -1,0 +1,11 @@
+{
+  "typescript.tsserver.useSyntaxServer": "auto",
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.wordBasedSuggestions": "currentDocument",
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+}
