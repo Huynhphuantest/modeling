@@ -4,35 +4,69 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/src/component/radio.ts" defer></script>
     <script type="module" src="/src/script.ts" defer></script>
     <script type="module" src="/src/objectCreationOptions.ts" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./src/global.css">
     <link rel="stylesheet" href="./src/style.css">
     <link rel="stylesheet" href="./src/inspect.css">
+    <link rel="stylesheet" href="./src/hierachy.css">
+    <link rel="stylesheet" href="./src/file.css">
+    <link rel="stylesheet" href="./src/viewport.css">
+    <link rel="stylesheet" href="./src/tool.css">
+    <link rel="stylesheet" href="./src/mode.css">
     <title>3D Model</title>
   </head>
   <body>
+    <div id="viewport">
+    </div>
     <main>
-      <div class="panel" style="grid-area: file;" id="file-panel">
-        <p>icon ;</p>
-        <button>File</button>
-        <button>Edit</button>
-        <button>Render</button>
-        <button>Shading</button>
-        <button>Animation</button>
-        <button>Help</button>
+      <div class="panel" style="grid-area: mode;" id ="mode">
+        <div class="header">Modes</div>
+        <div class="break"></div>
+        <div id="mode-selector" class="radio">
+          <button><div><span></span>Layout</div><div>⌘+1</div></button>
+          <button><div><span></span>Modeling</div><div>⌘+2</div></button>
+          <button><div><span></span>Textures</div><div>⌘+3</div></button>
+          <button><div><span></span>Animation</div><div>⌘+4</div></button>
+          <button><div><span></span>Shaders</div><div>⌘+5</div></button>
+        </div>
       </div>
-      <div class="panel" style="grid-area: viewport;" id="viewport-panel">
-        <div id="panel-overlay">
-          <div id="tools">
-            <button class="viewport-button" id="add-object-button">+</button>
+      <div class="panel" style="grid-area: hierachy;" id="hierachy">
+        <div class="header">Hierachy</div>
+        <div id="hierachy-container"></div>
+      </div>
+      <div class="panel" style="grid-area: function;" id="function">
+        <div class="header">Function</div>
+      </div>
+      <div class="panel" style="grid-area: inspector;" id="inspector">
+        <div class="header">Inspector</div>
+        <div class="break"></div>
+        <div id="inspector-container"></div>
+      </div>
+      <div class="panel" style="grid-area: tool;" id="tool">
+          <div id="pan" class="tool-button-container">
+            <button class="tool-button icon">
+              deployed_code
+            </button>
+            <button class="tool-button icon">
+              open_with
+            </button>
+            <button class="tool-button icon">
+            autorenew
+            </button>
+            <button class="tool-button icon">
+              open_in_full
+            </button>
           </div>
-          <div id="pan">
+          <div id="edit" class="tool-button-container">
+            <button class="tool-button icon" id="add-object-button">add_2</button>
           </div>
         </div>
       </div>
-      <div class="panel" style="grid-area: function;" id="function-panel"></div>
-      <div class="panel" style="grid-area: inspector;" id="inspector-panel"></div>
     </main>
     <dialog id="object-creation-modal">
       <div id="object-creation">

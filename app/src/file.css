@@ -1,0 +1,9 @@
+#file-panel {
+  display:flex;
+  background:var(--scn-70);
+  overflow-x:scroll;
+}
+#file-panel > button {
+  padding: 0 var(--spc-sm);
+  font-size:var(--fs-sm);
+}

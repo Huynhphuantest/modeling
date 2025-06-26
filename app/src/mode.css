@@ -1,0 +1,50 @@
+#mode-selector {
+    font-size: var(--fs-sm);
+    display:flex;
+    flex-direction: column;
+    gap:var(--spc-xs);
+}
+#mode-selector > button {
+    all:unset;
+    color:var(--ttr-10);
+    display:flex;
+    gap:var(--spc-xl);
+    justify-content:space-between;
+    width:100%;
+}
+#mode-selector > button:not(.selected) {
+    color:var(--ttr-30);
+}
+#mode-selector > button:not(.selected) > div > span {
+    filter:saturate(80%) brightness(50%);
+}
+#mode-selector > button > div {
+    display:flex;
+    gap:var(--spc-sm);
+    align-items: center;
+}
+#mode-selector > button > div > span {
+    width:1ch;
+    height:1ch;
+    border-radius: 100%;
+}
+#mode-selector > button:nth-child(1) > div > span { background:violet }
+#mode-selector > button:nth-child(2) > div > span { background:crimson }
+#mode-selector > button:nth-child(3) > div > span { background:coral }
+#mode-selector > button:nth-child(4) > div > span { background:gold}
+#mode-selector > button:nth-child(5) > div > span { background:greenyellow }
+#mode-selector > button:nth-child(6) > div > span { background:cyan }
+#mode-selector > button:nth-child(8) > div > span { background:lightblue }
+#mode-selector > button:nth-child(7) > div > span { background:darkviolet }
+#mode-selector > button:nth-child(9) > div > span { background:brown }
+#mode-selector > button > div:last-child {
+    font-weight:300;
+    border-radius: 1000px;
+    border:var(--scn-50) solid 1px;
+    padding: 0 var(--spc-sm);
+    font-size:var(--fs-xs);
+    color:var(--scn-30);
+    text-align: center;
+    display:flex;
+    align-items: center;
+}

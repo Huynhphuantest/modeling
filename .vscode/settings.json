@@ -1,11 +1,11 @@
 {
-  "typescript.tsserver.useSyntaxServer": "auto",
-  "editor.suggestOnTriggerCharacters": true,
   "editor.quickSuggestions": {
     "other": true,
-    "comments": false,
+    "comments": true,
     "strings": true
   },
-  "editor.wordBasedSuggestions": "currentDocument",
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  }
 }
