@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { addObject } from "./viewport";
 let hasRendered = false;
-const waits:(() => void)[] = []
+const waits:(() => void)[] = [];
 const material = new THREE.MeshPhysicalMaterial({
     color:"#049ef4",
     iridescence: 1,
@@ -50,7 +50,7 @@ const wireframe = new THREE.LineSegments(new THREE.BufferGeometry(), wireframeMa
 scene.add(wireframe);
 const demoObj = new THREE.Mesh(new THREE.BufferGeometry(), material);
 scene.add(demoObj);
-let dimension = undefined;
+let dimension:undefined|{width:number, height:number} = undefined;
 
 function addOption(name:string,geometryFunc:() => THREE.BufferGeometry) {
     const el = document.createElement("div");
@@ -75,7 +75,6 @@ function addOption(name:string,geometryFunc:() => THREE.BufferGeometry) {
     waits.push(() => {
         if(!dimension) {
             dimension = demo.getBoundingClientRect();
-            wireframeMaterial.resolution = new THREE.Vector2(dimension.width, dimension.height);
             camera.aspect = dimension.width / dimension.height;
             camera.updateProjectionMatrix();
             renderer.setSize(dimension.width, dimension.height);
@@ -88,16 +87,18 @@ function addOption(name:string,geometryFunc:() => THREE.BufferGeometry) {
         canvas.width = renderer.domElement.width;
         canvas.height = renderer.domElement.height;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(renderer.domElement, 0, 0);
+        ctx?.drawImage(renderer.domElement, 0, 0);
     });
     
     panel?.appendChild(el);
 
     el.onclick = () => {
-        addObject(new THREE.Mesh(
+        const mesh = new THREE.Mesh(
             geometry,
             material.clone()
-        ));
+        );
+        mesh.name = name;
+        addObject(mesh);
         escape();
     }
 }

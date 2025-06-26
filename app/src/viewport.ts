@@ -1,15 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
-import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from "three/examples/jsm/Addons.js";
-import { isSafari } from './utils';
+import { inspect } from './inspect.ts';
+import { hierachy } from './hierachy.ts'
 
-const objects:THREE.Object3D[] = [];
 let scene:THREE.Scene = new THREE.Scene();
-let camera:THREE.PerspectiveCamera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
-let renderer:THREE.WebGLRenderer = new THREE.WebGLRenderer();
+let devScene:THREE.Scene = new THREE.Scene();
+let camera:THREE.PerspectiveCamera = new THREE.PerspectiveCamera( 120, 1, 0.1, 1000 );
+let renderer:THREE.WebGLRenderer = new THREE.WebGLRenderer({antialias:true});
 let orbit:OrbitControls = new OrbitControls(camera, null);
 let transform:TransformControls = new TransformControls(camera);
 let panel = document.body;
@@ -23,14 +21,14 @@ export function init(panelI:HTMLDivElement) {
     renderer.setPixelRatio(window.devicePixelRatio);
   }
   resize();
-  renderer.setClearColor("#1a1c1f");
+  renderer.setClearColor("#132425");
   renderer.domElement.addEventListener('pointerdown', (e) => e.preventDefault());
   renderer.domElement.addEventListener('dragstart', (e) => e.preventDefault());
 
   window.addEventListener("resize", resize);
   panel.appendChild( renderer.domElement );
 
-  scene.add(new THREE.GridHelper(10,10,"white"))
+  devScene.add(new THREE.GridHelper(10,10,"white"))
 
   orbit.connect(renderer.domElement);
   camera.position.set(0,0,10);
@@ -38,14 +36,27 @@ export function init(panelI:HTMLDivElement) {
 
   transform.domElement = renderer.domElement;
   transform.connect(renderer.domElement)
-  scene.add(transform.getHelper());
+  devScene.add(transform.getHelper());
 
   disableBrowserBehavior();
   control();
 }
+
+const boundingBoxOutline = new THREE.BoxHelper(new THREE.Object3D());
+
+export function select(object:THREE.Object3D) {
+  transform.attach(object);
+  boundingBoxOutline.setFromObject(object);
+  boundingBoxOutline.update();
+  devScene.add(boundingBoxOutline);
+  inspect(object);
+}
+export function drop() {
+  transform.detach();
+  devScene.remove(boundingBoxOutline);
+}
 export function control() {
   const dom = renderer.domElement;
-  const boundingBoxOutline = new THREE.BoxHelper();
   const dimension = dom.getBoundingClientRect();
   const mouseStart = new THREE.Vector2();
   dom.addEventListener('pointerdown', (event:PointerEvent) => {
@@ -62,16 +73,13 @@ export function control() {
       - ( (event.clientY - dimension.top) / dimension.height ) * 2 + 1
     ), camera );
 
-    const intersects = raycaster.intersectObjects( objects );
+    const intersects = raycaster.intersectObjects( scene.children );
     if (intersects.length < 1) {
-      transform.detach();
+      drop();
       return;
     }
     const object = intersects[0].object;
-    transform.attach(object);
-    boundingBoxOutline.setFromObject(object);
-    boundingBoxOutline.update();
-    scene.add(boundingBoxOutline);
+    select(object);
   });
   function updateBoxOutline() {
     boundingBoxOutline.position.copy(transform.object.position);
@@ -88,6 +96,7 @@ export function control() {
   });
   transform.addEventListener("change", () => {
     if (!transform.object) return;
+    const transformAny = (transform as any);
 
     // There is a bug where the transform control
     // _plane doesn't update when switching axis causing
@@ -97,27 +106,32 @@ export function control() {
     transform.object.updateMatrixWorld();
     transform.object.parent?.updateMatrixWorld();
     transform.object.matrixWorld.decompose(
-      transform.worldPosition,
-      transform.worldQuaternion,
-      transform._worldScale
+      transformAny.worldPosition,
+      transformAny.worldQuaternion,
+      transformAny._worldScale
     );
 
     // Orient the plane to camera direction
-    transform._plane.quaternion.copy(camera.quaternion);
-    transform._plane.position.copy(transform.worldPosition);
-    transform._plane.updateMatrixWorld(true);
+    transformAny._plane.quaternion.copy(camera.quaternion);
+    transformAny._plane.position.copy(transformAny.worldPosition);
+    transformAny._plane.updateMatrixWorld(true);
   });
 }
 export function start() {
   render();
 }
 function render() {
-  renderer.render( scene, camera );
   requestAnimationFrame(render);
+
+  renderer.clear()
+  renderer.autoClear = false;
+
+  renderer.render( scene, camera );
+  renderer.render( devScene, camera );
 }
 export function addObject(obj:THREE.Object3D) {
-  objects.push(obj);
   scene.add(obj);
+  hierachy(scene);
 }
 
 function disableBrowserBehavior() {
@@ -150,3 +164,21 @@ function disableBrowserBehavior() {
   renderer.domElement.addEventListener('pointerup', enableSelection);
   renderer.domElement.addEventListener('pointercancel', enableSelection);
 }
+
+
+
+
+
+
+function add(name:string) {
+  const mesh = new THREE.Mesh();
+  mesh.name = name;
+  addObject(mesh);
+  return mesh;
+}
+
+add("DObj");
+const a = add("AObj");
+const b = add("BObj");
+b.add(a);s
+add("CObj");

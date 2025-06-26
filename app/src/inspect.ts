@@ -1,21 +1,17 @@
 import * as THREE from 'three';
-import { propertyDisplay } from './config/propertyDisplay.ts';
+import { updateAllExpandableIn } from './component/expandable.ts';
+import { getSchemas, getProperties, renderSchema } from './config/schema.ts';
 import DOMPurify from 'dompurify';
 
-const panel = document.querySelector("#inspector-panel");
+const panel = document.querySelector("#inspector-container")!;
 
-export function inspect(obj:any) {
-    for(const [value] of Object.entries(propertyDisplay)) {
-    }
-}
-function property(name:string, HTMLvalue:string) {
-    return /*html*/ `
-        <div class="property">
-            <div class="property-name"></div>
-            <div class="property-value"></div>
-        </div>
-    `
-}
-function has(obj:any, property:any) {
-    return obj.hasOwnProperty(property);
+export async function inspect(obj:any) {
+    const schema = getSchemas(obj);
+    const properties = getProperties(schema);
+    const html = renderSchema(obj, properties);
+    
+    panel.innerHTML = DOMPurify.sanitize(/*html*/ `
+        ${html}
+        `);
+    setTimeout(() => updateAllExpandableIn(panel), 0);
 }
