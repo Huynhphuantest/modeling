@@ -1,0 +1,63 @@
+<!-- Inspector -->
+<div class="panel" id="inspector" data-column="left">
+    <div class="header">Inspector</div>
+    <div class="break"></div>
+    <div id="inspector-container"></div>
+</div>
+<!-- Hierachy -->
+<div class="panel" id="hierarchy" data-column="right">
+    <div class="header">Hierarchy</div>
+    <div id="hierarchy-container"></div>
+</div>
+<!-- Function -->
+<div class="panel" id="function" data-column="right">
+    <div class="header">Function</div>
+</div>
+<!-- Tool -->
+<div class="panel tool-container" id="tool" data-column="center">
+    <div class="pan tool-button-container radio">
+        <button class="tool-button icon">open_with</button>
+        <button class="tool-button icon">autorenew</button>
+        <button class="tool-button icon">open_in_full</button>
+    </div>
+    <div class="tool-button-container">
+        <button class="delete tool-button icon">delete</button>
+    </div>
+    <div id="edit" class="tool-button-container">
+        <div id="add-object-dropdown" class="dropdown">
+          <button class="tool-button icon dropdown-selected">add_2</button>
+          <div class="dropdown-options"></div>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Modeling -->
+<div class="panel tool-container" id="modeling" data-column="center">
+    <div class="pan tool-button-container radio">
+        <button class="tool-button icon">open_with</button> <!-- translate -->
+        <button class="tool-button icon">autorenew</button> <!-- rotate -->
+        <button class="tool-button icon">open_in_full</button> <!-- scale -->
+    </div>
+    <div class="tool-button-container">
+        <button class="delete tool-button icon">delete</button>
+    </div>
+    <div class="model-tool tool-button-container radio">
+        <button class="tool-button icon">block</button> <!-- None -->
+        <button class="tool-button icon">all_out</button> <!-- Extrude -->
+        <button class="tool-button icon">arrows_input</button> <!-- Inset -->
+        <button class="tool-button icon">rounded_corner</button> <!-- Bevel -->
+        <button class="tool-button icon">surgical</button> <!-- Knife -->
+        <button class="tool-button icon">combine_columns</button> <!-- Merge -->
+    </div>
+    <div class="model-mode tool-button-container">
+        <button class="tool-button icon toggleable">change_history</button> <!-- vertex -->
+        <button class="tool-button icon toggleable">remove</button> <!-- line -->
+        <button class="tool-button icon toggleable">check_box_outline_blank</button> <!-- face -->
+    </div>
+    <div class="mode-view tool-button-container radio">
+        <button class="tool-button icon">select</button> <!-- wireframe -->
+        <button class="tool-button icon">stroke_full</button> <!-- solid -->
+        <button class="tool-button icon">texture</button> <!-- material -->
+        <button class="tool-button icon">circle</button> <!-- rendered -->
+    </div>
+</div>

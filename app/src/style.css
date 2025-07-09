@@ -7,6 +7,10 @@
 .icon {
   font-family: 'icon';
 }
+.hollow {
+  font-family: 'icon';
+  fill:0;
+}
 :root {
   font-family: "Roboto Mono", monospace;
   font-weight: 400;
@@ -17,42 +21,63 @@ body, html {
   width:100%;
   height:100%;
   overflow:hidden;
+  touch-action: manipulation; /* Prevents double-tap zoom in most cases */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+button, input, label {
+  font-size: 16px; /* Critical: stops Safari from thinking it needs to zoom */
+}
+button, input, label {
+  touch-action: manipulation;
 }
 main {
-  position:absolute;
-  top:0;
-  left:0;
-  display:grid;
-  width:100%;
-  height:100%;
-  padding:var(--spc-md);
-  grid-template-areas:
-    "mode . . . . function function"
-    "inspector inspector . . . . hierachy"
-    "inspector inspector .  tool . . hierachy";
-  grid-template-columns: 2fr repeat(5, 1fr) 2fr;
-  grid-template-rows: repeat(2, minmax(2rem, 1.5fr)) 3rem;
-  overflow:hidden;
-  gap:var(--spc-bs);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: var(--spc-md);
+  gap: var(--spc-bs);
   pointer-events: none;
   user-select: none;
-  -moz-user-select: none;
+  justify-content: space-between;
 }
-main > * {
-  pointer-events: all;
+
+main > .column {
+  display: flex;
+  flex-direction: column;
+  height:100%;
+  width:fit-content;
+  gap: var(--spc-bs);
+  pointer-events: none;
+  user-select: none;
+  overflow:hidden;
+}
+
+.panel:last-child:not(:first-child) {
+  flex-shrink:1;
+  min-height:0;
+  height:100%;
 }
 .panel {
-  position: relative;
-  width:100%;
-  min-height: 0;
-  background:var(--scn-70);
-  border-radius:var(--rad-lg);
+  flex-shrink:0;
+  min-width:14rem;
+  background: var(--scn-90);
+  border-radius: var(--rad-lg);
   padding: var(--spc-sm) var(--spc-md);
-  display:flex;
+  display: flex;
   flex-direction: column;
-  gap:var(--spc-xs);
-} 
+  gap: var(--spc-xs);
+  width:fit-content;
+  pointer-events: all;
+  border: 2px solid var(--scn-60);
+}
 .header {
+  font-size:var(--fs-sm);
   font-weight: 400;
   color:var(--ttr-10);
   margin-left:var(--spc-xs);

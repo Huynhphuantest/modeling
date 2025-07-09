@@ -1,6 +1,5 @@
-import * as VIEWPORT from './viewport';
+import { Editor } from './panel/editor.ts';
 
-const main = document.querySelector("main");
 const viewportPanel = document.getElementById("viewport") as HTMLDivElement;
-VIEWPORT.init(viewportPanel);
-VIEWPORT.start();
+
+Editor.init(viewportPanel);
