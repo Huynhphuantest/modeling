@@ -1,0 +1,22 @@
+#hierarchy-container {
+    width:100%;
+    height:100%;
+    border-radius: var(--md-rad);
+    font-size:var(--fs-2xs);
+}
+#hierarchy-container .header {
+    display:flex;
+    align-items: baseline;
+}
+#hierarchy-container .name {
+    font-size:var(--fs-sm)
+}
+#hierarchy-container .type {
+    font-size:var(--fs-2xs);
+    color: var(--ttr-40);
+}
+#hierarchy-container .target {
+    display:flex;
+    flex-direction: column;
+    margin-left:var(--spc-xs);
+}

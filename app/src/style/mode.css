@@ -1,5 +1,5 @@
 #mode-selector {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     display:flex;
     flex-direction: column;
     gap:var(--spc-xs);
@@ -20,13 +20,14 @@
 }
 #mode-selector > button > div {
     display:flex;
-    gap:var(--spc-sm);
+    gap:var(--spc-2xs);
     align-items: center;
 }
 #mode-selector > button > div > span {
     width:1ch;
     height:1ch;
     border-radius: 100%;
+    margin-right:var(--spc-xs);
 }
 #mode-selector > button:nth-child(1) > div > span { background:violet }
 #mode-selector > button:nth-child(2) > div > span { background:crimson }

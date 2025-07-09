@@ -1,36 +1,35 @@
 import { Vector2, Vector3, Quaternion, Euler, Color } from 'three';
-type Property = {
+export type Property = {
   type: string,
   advanced?: boolean,
   locked?: boolean,
   display?: string,
 }
-function toConst(property:Property):Property {
-  return {
-    type: property.type,
-    advanced: property.advanced === undefined ? false : property.advanced,
-    locked: property.locked === undefined ? false : property.locked,
-    display: property.display
-  } as const;
-}
 
 const advanced = true;
 const locked = true;
-function input(value:any) {
+function filter(val:any) {
+  if(val ===  Infinity) val =  "Inf";
+  if(val === -Infinity) val = "-Inf";
+  if(typeof val === "number") val = Math.round(val*100)/100;
+  return val;
+}
+export function input(value:any) {
   return /*html*/`
-    <div contenteditable="true" class="display">${value}</div>`;
+    <div contenteditable="true" class="display">${filter(value)}</div>`;
 }
 function inputProperty(obj:any, property:string) {
+  let val = filter(obj[property]);
   return /*html*/`
     <div class="label">${property}</div>
-    <div contenteditable="true" class="display">${obj[property]}</div>`;
+    <div contenteditable="true" class="display">${val}</div>`;
 }
 export const valueDisplay:Map<string,(...args: any[]) => string> = new Map(Object.entries({
   string: (value:string) => { return input(value) },
   number: (value:number) => { return input(value) },
   boolean: (value:boolean) => { 
     return /*html*/`
-      <div class="checkbox"></div>
+      <div class="checkbox">${value}</div>
     `
   },
   Vector2: (value:Vector2) => { 
@@ -63,7 +62,7 @@ export const valueDisplay:Map<string,(...args: any[]) => string> = new Map(Objec
   },
   Color: (value:Color) => {
     return /*html*/`
-      <input type="color">
+      <input type="color" value="#${value.getHex()}">
     `
   },
   null: () => input("null"),
@@ -278,7 +277,7 @@ const MaterialSchema = {
     "gapSize": { "type": "number" }
   }
 }
-const allSchemas:Map<string, Object> = new Map(Object.entries({
+export const allSchemas:Map<string, Object> = new Map(Object.entries({
   ...MiscSchema,
   ...CoreSchema,
   ...CameraSchema,
@@ -286,92 +285,3 @@ const allSchemas:Map<string, Object> = new Map(Object.entries({
   ...LightSchema,
   ...MaterialSchema
 }));
-function getCleanKeyName(key:string):string {
-  return key.startsWith('_') ? key.slice(1) : key;
-}
-function getPrototypeChainUntil(obj:Object, stops = ['EventDispatcher', 'Object']):string[] {
-  const chain:string[] = [];
-
-  let ctor = obj?.constructor;
-  const stopSet = new Set(stops);
-
-  while (ctor && ctor.name && !stopSet.has(ctor.name)) {
-    chain.push(getCleanKeyName(ctor.name));
-    ctor = Object.getPrototypeOf(ctor);
-  }
-
-  return chain;
-}
-export function getSchemas(obj:any):string[] {
-  const schemas = getPrototypeChainUntil(obj);
-  return schemas;
-}
-export function getProperties(schemas:string[]):Map<string, Property> {
-  const properties = {};
-  for (const schemaName of schemas) {
-    const schema = allSchemas.get(schemaName);
-    // Do something here
-    if(typeof schema === "undefined") continue;
-    Object.assign(properties, schema);
-  }
-  return new Map(Object.entries(properties));
-}
-export function getPropertiesOfObject(obj:Object):Map<string, Property> {
-  const properties:any = {};
-  const keys = Object.keys(obj);
-  keys.map((e) => {
-    properties[e] = { "type":"string" }
-  });
-  return new Map(Object.entries(properties));
-}
-export function renderSchema(obj:object, schema:Map<string, Property>):string {
-  let html = '';
-  for(const [key, uneditedInfo] of schema) {
-    const info = toConst(uneditedInfo); //to Const
-    if(info.display) {
-      html += info.display;
-      continue;
-    }
-    let isObject = false;
-    const value = obj[key as keyof typeof obj];
-    const display:string = function():string {
-      let result:string;
-      const displayResult = valueDisplay.get(info.type); // Get function
-
-      // Refactor this if-else hell
-      if(displayResult === undefined) {
-        if(Array.isArray(value)) {
-          result = "Array Unsupported"
-        }
-        else {
-          if(value === null) return input("null");
-          if(value === undefined) return input("undefined");
-          // Probabbly an object, hope so
-          if(info.type !== "Object") {
-            const schema = getSchemas(value);
-            if(schema.length === 0) {
-              result = renderSchema(value, getPropertiesOfObject(value));
-            } else {
-              const properties = getProperties(schema);
-              result = renderSchema(value, properties);
-            }
-          } else {
-            // Object
-            result = renderSchema(value, getPropertiesOfObject(value));
-          }
-          isObject = true;
-        }
-      } else {
-        result = displayResult(value);
-      }
-      return result;
-    }();
-    html += /*html*/`
-      <div class="property">
-        <div class="key">${key}:</div>
-        <div class="value ${isObject ? "object" : ""}">${display}</div>
-      </div>
-    `;
-  }
-  return html;
-}
