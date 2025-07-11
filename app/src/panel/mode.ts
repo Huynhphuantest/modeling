@@ -53,7 +53,7 @@ export const Mode = {
         return button;
     }
 }
-Mode.add("widgets", "Layout", ["inspector", "hierarchy", "function", "tool"]).click();
+Mode.add("widgets", "Layout", ["inspector", "hierarchy", "assets", "tool"]).click();
 Mode.add("edit", "Modeling", ["inspector", "function", "modeling"]);
 Mode.add("brush", "Textures", []);
 Mode.add("animation", "Animation", ["inspector", "hierarchy", "timeline"]);

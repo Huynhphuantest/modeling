@@ -1,24 +1,23 @@
-
 .tool-container {
   display:flex;
   gap: var(--spc-xs);
   padding: var(--spc-xs);
-  width:fit-content;
+  align-items: start;
+  justify-content: start;
   flex-direction: row;
   background:var(--scn-90);
   flex-wrap: wrap;
+  width:fit-content;
 }
 .tool-button-container {
   display:flex;
   flex-direction: row;
-  height:fit-content;
 }
 .tool-button {
   width:calc(2.5ch * var(--fs-md));
   height:calc(2.5ch * var(--fs-md));
   background:var(--scn-80);
   overflow:hidden;
-  aspect-ratio: 1/1;
   font-size:var(--fs-md);
   font-weight:500;
   display:flex;
@@ -40,17 +39,10 @@
   border-bottom-right-radius: var(--rad-md);
 }
 
-
-
-
-#edit {
-  width:calc(2.5ch * var(--fs-md));
-  height:calc(2.5ch * var(--fs-md));
-}
 .dropdown-options {
   position:absolute;
   padding:var(--spc-md);
-  background:var(--scn-80);
+  background:var(--scn-90);
   color:var(--scn-10);
   border-radius: var(--rad-md);
   flex-direction: column;

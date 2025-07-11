@@ -1,7 +1,7 @@
 import { Dropdown } from '../component/dropdown.ts';
 import { Expandable } from '../component/expandable.ts';
 import { Radio } from '../component/radio.ts';
-import { allSchemas, Property, valueDisplay, input } from '../config/schema.ts';
+import { allSchemas, Property, valueDisplay, input, getObjectMask } from '../config/schema.ts';
 import DOMPurify from 'dompurify';
 
 const panel = document.querySelector("#inspector-container")!;
@@ -63,7 +63,7 @@ function renderProperty(key: string, valueHtml: string, isObject: boolean): stri
   ` : /*html*/`
     <div class="property expandable">
       <div class="key">
-        ${key}
+        ${getObjectMask(key)}
         <div class="expandable-icon"></div>
       </div>
       <div class="value object target">${valueHtml}</div>

@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Vector2, Vector3, Quaternion, Euler, Color } from 'three';
 export type Property = {
   type: string,
@@ -102,8 +103,6 @@ const MiscSchema = {
 }
 const CoreSchema = {
   "Object3D": {
-    "uuid": { "type": "string", locked },
-    "name": { "type": "string" },
     "Transform:open": utils.groupOpen("Transform", "deployed_code"),
     "position": { "type": "Vector3" },
     "rotation": { "type": "Euler" },
@@ -118,6 +117,8 @@ const CoreSchema = {
       "matrixAutoUpdate": { "type": "boolean", advanced },
       "matrixWorldNeedsUpdate": { "type": "boolean", advanced },
     "Matrices:close": utils.groupClose(),
+    "uuid": { "type": "string", locked },
+    "name": { "type": "string" },
     "castShadow": { "type": "boolean" },
     "receiveShadow": { "type": "boolean" },
     "visible": { "type": "boolean" },
@@ -285,3 +286,38 @@ export const allSchemas:Map<string, Object> = new Map(Object.entries({
   ...LightSchema,
   ...MaterialSchema
 }));
+
+function createObject(icon:string, name:string) {
+  return /*html*/`
+    <div class='icon'>${icon}</div>${name}
+  `;
+}
+function createIcon(icon:string) {
+  return /*html*/`
+    <div class='icon'>${icon}</div>
+  `;
+}
+const objectMask:Map<string, string> = new Map(Object.entries({
+  geometry: createObject("shapes", "Geometry"),
+  material: createObject("deblur", "Material"),
+  target: createObject("crisis_alert", "Target"),
+  shadow: createObject("ev_shadow", "Shadow"),
+  matrix: createObject("dataset","Matrix"),
+  modelViewMatrix: createObject("dataset","View"),
+  modelMatrix: createObject("dataset","Model"),
+  normalMatrix: createObject("dataset","Normal"),
+  matrixWorld: createObject("dataset","World"),
+}));
+const objectIcon = new Map<Function, string>([
+  [THREE.Light, createIcon("emoji_objects")],
+  [THREE.Mesh, createIcon("shapes")],
+  [THREE.Object3D, createIcon("ad_group")],
+]);
+
+export function getObjectMask(name:string):string { return objectMask.get(name) ?? name; }
+export function getObjectIcon(obj: any): string {
+  for (const [ctor, icon] of objectIcon) {
+    if (obj instanceof ctor) return icon;
+  }
+  return createIcon("data_object");
+}

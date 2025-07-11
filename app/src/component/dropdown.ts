@@ -14,6 +14,8 @@ export class Dropdown extends UIComponent {
       e.stopPropagation();
       const wasOpen = options.style.display !== "none";
       Dropdown.closeAll(options); // close all before opening
+      const parent = (el as HTMLElement).parentElement;
+      if(parent) Dropdown.closeAll(parent);
       if (!wasOpen) options.style.display = "flex";
       else options.style.display = "none";
     });

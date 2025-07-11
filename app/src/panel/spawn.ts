@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import { Editor } from "./editor.ts";
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 const material = new THREE.MeshStandardMaterial({ color: "#cccccc" });
-type Option = { name: string; factory: () => THREE.Object3D, icon:string };
+type Option = { name: string; factory: () => THREE.Object3D | void, icon:string };
 const dom = document.getElementById("edit")!;
 const categories = new Map<string, HTMLElement>;
 const map = new Map<string, Option[]>();
 
-function addOption(category: string, name: string, icon:string, factory: () => THREE.Object3D) {
+function addOption(category: string, name: string, icon:string, factory: () => THREE.Object3D | void) {
   if (!categories.has(category)) throw new Error("No such category: "+category);
   map.get(category)!.push({ name, icon, factory });
 }
@@ -38,6 +39,7 @@ function populateDropdowns() {
       item.innerHTML = /*html*/`<div class="icon">${option.icon}</div>${option.name}`;
       item.addEventListener("click", () => {
         const obj = option.factory();
+        if(!obj) return;
         obj.name = option.name;
         Editor.addObject(obj);
       });
@@ -76,8 +78,24 @@ addOption("Light", "Spot", "nest_cam_floodlight", () => {
   return l;
 });
 
+// Mesh
+addCategory("Mesh", "grid_4x4");
+addOption("Mesh", "Mesh", "stroke_full", () => new THREE.Mesh());
+addOption("Mesh", "Instanced", "host", () => new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.Material(), 0));
+addOption("Mesh", "Batched", "shadow", () => new THREE.BatchedMesh(0, 0));
+addOption("Mesh", "Skinned", "draw_collage", () => new THREE.SkinnedMesh());
+
 // Group
-addCategory("Group", "more_horiz");
-addOption("Group", "Group", "", () => new THREE.Group());
+addCategory("Misc", "more_horiz");
+addOption("Misc", "Object", "dataset", () => new THREE.Object3D());
+addOption("Misc", "Group", "account_tree", () => new THREE.Group());
+addOption("Misc", "Bone", "tibia", () => new THREE.Bone());
+addOption("Misc", "Sprite", "filter", () => new THREE.Sprite());
+addOption("Misc", "Suzanne", "ar_stickers", () => new OBJLoader().load(
+  "assets/suzanne.obj",
+  (obj) => Editor.addObject(obj),
+  () => {},
+  (err) => console.error(err)
+));
 
 populateDropdowns();

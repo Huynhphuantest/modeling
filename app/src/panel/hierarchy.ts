@@ -4,6 +4,7 @@ import { Editor } from './editor.ts';
 import { Dropdown } from '../component/dropdown.ts';
 import { Expandable } from '../component/expandable.ts';
 import { Radio } from '../component/radio.ts';
+import { getObjectIcon, getObjectMask } from '../config/schema.ts';
 
 const panel = document.querySelector("#hierarchy-container")! as HTMLElement;
 Dropdown.observeIn(panel);
@@ -28,6 +29,7 @@ function traverse(obj: Object3D): string {
   let html = /*html*/`
     <div class="${hasChildren ? "expandable" : ""}">
       <div class="header" draggable="true" data-uuid="${obj.uuid}">
+        ${getObjectIcon(obj)}
         <div class="name">${displayName}</div>
         <div class="type">:${obj.type}</div>
         ${hasChildren ? `<div class="expandable-icon"></div>` : ""}

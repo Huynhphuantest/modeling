@@ -15,6 +15,9 @@
   font-family: "Roboto Mono", monospace;
   font-weight: 400;
 }
+* {
+  font-family: "Roboto Mono", monospace;
+}
 body, html {
   position: relative;
   background:var(--ttr-80);

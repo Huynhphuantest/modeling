@@ -5,6 +5,7 @@ import { Inspector } from './inspect.ts';
 import { Hierarchy } from './hierarchy.ts';
 import { Modeling } from './modeling.ts';
 import { Tool } from './tool.ts';
+import { Mode } from './mode.ts';
 
 type PickCallback = (obj: THREE.Object3D | null) => void;
 
@@ -23,21 +24,21 @@ export const Editor = {
       else this.drop();
     });
   },
+  updateBox() {
+    if (Viewport.transform.object) {
+      Viewport.boundingBoxOutline.setFromObject(Viewport.transform.object);
+      Viewport.boundingBoxOutline.update();
+    }
+  },
   setupTransformSync() {
     const { domElement: dom } = Viewport.renderer;
     const { transform, orbit, boundingBoxOutline, camera } = Viewport;
-    const updateBox = () => {
-      if (transform.object) {
-        boundingBoxOutline.setFromObject(transform.object);
-        boundingBoxOutline.update();
-      }
-    };
     transform.addEventListener("mouseDown", () => {
-      dom.addEventListener("pointermove", updateBox);
+      dom.addEventListener("pointermove", this.updateBox);
       orbit.enabled = false;
     });
     transform.addEventListener("mouseUp", () => {
-      dom.removeEventListener("pointermove", updateBox);
+      dom.removeEventListener("pointermove", this.updateBox);
       orbit.enabled = true;
     });
     transform.addEventListener("change", () => {
@@ -61,6 +62,7 @@ export const Editor = {
     Inspector.inspect(object);
   },
   drop() {
+    if(Mode.current !== "layout") return;
     Viewport.drop();
     Inspector.clear();
   },

@@ -1,26 +1,57 @@
 import * as THREE from 'three';
+const elementsMap = new Map<string, HTMLElement>();
+export function isDropdownOpen(element:HTMLElement) {
+  return (element.querySelector(".dropdown-options") as HTMLElement)!.style.display !== "none";
+}
+export function getElement(query:string):HTMLElement {
+  const map = elementsMap.get(query);
+  if(map) return map;
+  const el = document.querySelector(query) as HTMLElement | undefined;
+  if(!el) throw new Error("Element not found: "+query);
+  elementsMap.set(query, el);
+  return el;
+}
+export function getButtons(query:string, funcs:Function[]):Function[] {
+  const buttons = document.querySelectorAll(query);
+  const functions:Function[] = [];
+  buttons.forEach((btn, i) => {
+    functions.push(() => (btn as HTMLButtonElement).click());
+    btn.addEventListener("click", () => { funcs[i](); });
+  });
+  return functions;
+}
 export function getVertices(mesh: THREE.Mesh): THREE.Vector3[] {
+  const vertices:THREE.Vector3[] = [];
   const posAttr = mesh.geometry.getAttribute("position");
-  const unique = new Map<string, THREE.Vector3>();
   for (let i = 0; i < posAttr.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(posAttr, i);
-    const key = `${v.x.toFixed(5)},${v.y.toFixed(5)},${v.z.toFixed(5)}`;
-    if (!unique.has(key)) unique.set(key, mesh.localToWorld(v));
+    vertices.push(mesh.localToWorld(v));
   }
-  return Array.from(unique.values());
+  return vertices;
 }
-export function updateVertices(mesh: THREE.Mesh, edits: THREE.Vector3[]) {
-  const geometry = mesh.geometry as THREE.BufferGeometry;
-  const posAttr = geometry.getAttribute("position");
-
-  edits.forEach((position, index) => {
-    // Convert from world to local before writing
-    const localPos = mesh.worldToLocal(position.clone());
-    posAttr.setXYZ(index, localPos.x, localPos.y, localPos.z);
-  });
-
-  posAttr.needsUpdate = true;
-  geometry.computeVertexNormals();
+export function getSelectedVertexIndices(
+  selectedPoints: THREE.Vector3[],
+  geometry: THREE.BufferGeometry,
+  mesh: THREE.Mesh
+): number[] {
+  const positions = geometry.getAttribute('position') as THREE.BufferAttribute;
+  const indices: number[] = [];
+  for (const selected of selectedPoints) {
+    const point = mesh.worldToLocal(selected.clone());
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      const z = positions.getZ(i);
+      // Precision check with zero tolerance
+      if (Math.abs(x - point.x) === 0 &&
+          Math.abs(y - point.y) === 0 &&
+          Math.abs(z - point.z) === 0) {
+        indices.push(i);
+        break;
+      }
+    }
+  }
+  return indices;
 }
 export function getWireframe(geometry:THREE.BufferGeometry) {
     return new THREE.EdgesGeometry(geometry);
@@ -43,4 +74,122 @@ export function disposeMesh(obj:THREE.Object3D) {
     } else {
     m.material?.dispose?.();
     }
+}
+export function castRayFromScreen(camera:THREE.Camera, targets:THREE.Object3D[], position:THREE.Vector2, bounds:DOMRect) {
+  const mouse = new THREE.Vector2(
+    ((position.x - bounds.left) / bounds.width) * 2 - 1,
+    -((position.y - bounds.top) / bounds.height) * 2 + 1
+  );
+
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+  return raycaster.intersectObjects(targets);
+}
+export function createRayFromScreen(camera:THREE.Camera, position:THREE.Vector2, bounds:DOMRect) {
+  const mouse = new THREE.Vector2(
+    ((position.x - bounds.left) / bounds.width) * 2 - 1,
+    -((position.y - bounds.top) / bounds.height) * 2 + 1
+  );
+
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(mouse, camera);
+  return ray.ray;
+}
+export function distanceFromPointsToRay(ray: THREE.Ray, points: THREE.Vector3 | THREE.Vector3[]): number[] {
+  const pts = Array.isArray(points) ? points : [points];
+  return pts.map(point => {
+    return ray.distanceToPoint(point);
+  });
+}
+export function disableBrowserBehavior(dom:HTMLElement) {
+  Object.assign(dom.style, {
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    touchAction: 'none',
+  });
+  ["contextmenu", "selectstart", "pointerdown", "mousedown", "dragstart"].forEach(evt =>
+    dom.addEventListener(evt, (e:any) => e.preventDefault())
+  );
+  document.body.style.userSelect = 'none';
+  dom.addEventListener('pointerup', () => document.body.style.userSelect = '');
+  dom.addEventListener('pointercancel', () => document.body.style.userSelect = '');
+
+  let lastTap = 0;
+  document.addEventListener("touchend", e => {
+    const now = Date.now();
+    if (now - lastTap < 300) e.preventDefault();
+    lastTap = now;
+  });
+  document.addEventListener("gesturestart", e => e.preventDefault());
+  document.addEventListener("gesturechange", e => e.preventDefault());
+  document.addEventListener("gestureend", e => e.preventDefault());
+}
+
+export function createFrustumFromScreen(
+  x1: number, y1: number,
+  x2: number, y2: number,
+  camera: THREE.Camera,
+  domRect: DOMRect
+): THREE.Frustum {
+  const ndc1 = new THREE.Vector2(
+    ((x1 - domRect.left) / domRect.width) * 2 - 1,
+    -((y1 - domRect.top) / domRect.height) * 2 + 1
+  );
+  const ndc2 = new THREE.Vector2(
+    ((x2 - domRect.left) / domRect.width) * 2 - 1,
+    -((y2 - domRect.top) / domRect.height) * 2 + 1
+  );
+
+  const min = ndc1.clone().min(ndc2);
+  const max = ndc1.clone().max(ndc2);
+
+  // 8 corners in clip space (NDC), unprojected to world
+  const corners = [
+    new THREE.Vector3(min.x, min.y, -1), // near
+    new THREE.Vector3(max.x, min.y, -1),
+    new THREE.Vector3(max.x, max.y, -1),
+    new THREE.Vector3(min.x, max.y, -1),
+
+    new THREE.Vector3(min.x, min.y, 1), // far
+    new THREE.Vector3(max.x, min.y, 1),
+    new THREE.Vector3(max.x, max.y, 1),
+    new THREE.Vector3(min.x, max.y, 1),
+  ].map(p => p.unproject(camera));
+
+  const [n0, n1, n2, n3, f0, f1, f2, f3] = corners;
+
+  const frustum = new THREE.Frustum(
+    new THREE.Plane().setFromCoplanarPoints(n0, n1, f1), // bottom
+    new THREE.Plane().setFromCoplanarPoints(n1, n2, f2), // right
+    new THREE.Plane().setFromCoplanarPoints(n2, n3, f3), // top
+    new THREE.Plane().setFromCoplanarPoints(n3, n0, f0), // left
+    new THREE.Plane().setFromCoplanarPoints(n1, n0, n3), // near
+    new THREE.Plane().setFromCoplanarPoints(f0, f1, f2)  // far
+  );
+
+  return frustum;
+}
+
+// 4. Test objects
+export function getObjectsInFrustum(frustum: THREE.Frustum, objs: THREE.Object3D[]) {
+  const hits: THREE.Object3D[] = [];
+  for (const root of objs) {
+    root.traverse(obj => {
+      if (obj instanceof THREE.Mesh && obj.geometry?.boundingSphere) {
+        obj.updateMatrixWorld(true);
+
+        const center = obj.geometry.boundingSphere.center.clone().applyMatrix4(obj.matrixWorld);
+        if (frustum.containsPoint(center)) {
+          hits.push(obj);
+        }
+      }
+    });
+  }
+  return hits;
+}
+export function getPointsInFrustum(
+  frustum: THREE.Frustum,
+  points: THREE.Vector3[]
+): THREE.Vector3[] {
+  return points.filter(p => frustum.containsPoint(p));
 }

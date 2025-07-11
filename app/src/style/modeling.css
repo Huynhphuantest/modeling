@@ -1,0 +1,7 @@
+#select-area {
+    position:absolute;
+    background:var(--prm-60);
+    opacity:0.4;
+    border:var(--prm-40) 2px solid;
+    z-index: 5;
+}
