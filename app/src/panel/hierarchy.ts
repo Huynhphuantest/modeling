@@ -4,7 +4,41 @@ import { Editor } from './editor.ts';
 import { Dropdown } from '../component/dropdown.ts';
 import { Expandable } from '../component/expandable.ts';
 import { Radio } from '../component/radio.ts';
-import { getObjectIcon, getObjectMask } from '../config/schema.ts';
+
+import * as THREE from 'three';
+
+function createIcon(icon: string) {
+  return `<div class='icon'>${icon}</div>`;
+}
+function createObject(icon: string, name: string) {
+  return `<div class='icon'>${icon}</div>${name}`;
+}
+
+const objectIcon = new Map<Function, string>([
+  [THREE.Light, createIcon("emoji_objects")],
+  [THREE.Mesh, createIcon("shapes")],
+  [THREE.Object3D, createIcon("ad_group")]
+]);
+
+const objectMask = new Map<string, string>([
+  ['geometry', createObject("shapes", "Geometry")],
+  ['material', createObject("deblur", "Material")],
+  ['target', createObject("crisis_alert", "Target")],
+  ['shadow', createObject("ev_shadow", "Shadow")],
+  ['matrix', createObject("dataset", "Matrix")],
+  ['matrixWorld', createObject("dataset", "World")]
+]);
+
+export function getObjectIcon(obj: any): string {
+  for (const [ctor, icon] of objectIcon) {
+    if (obj instanceof ctor) return icon;
+  }
+  return createIcon("data_object");
+}
+
+export function getObjectMask(name: string): string {
+  return objectMask.get(name) ?? name;
+}
 
 const panel = document.querySelector("#hierarchy-container")! as HTMLElement;
 Dropdown.observeIn(panel);

@@ -89,13 +89,7 @@ export function init(sharedDummy: THREE.Object3D, transformControl: any, contain
         }
       }
     
-      if (pointIndices.length === 0) {
-        transform.detach();
-        selectedIndices = [];
-        if(selectedDisplay) Viewport.removeDev(selectedDisplay);
-        selectedDisplay = null;
-        return;
-      }
+      if (pointIndices.length === 0) return drop();
     
       pointIndices.forEach(index => {
         const i = selectedIndices.indexOf(index);
@@ -129,6 +123,7 @@ export function select(obj: THREE.Object3D) {
 }
 
 export function drop() {
+  transform.detach();
   selected = null;
   selectedIndices = [];
   vertexPositions = [];
@@ -207,7 +202,6 @@ function onTransformMove() {
 
   if(vertexDisplay) updateVertexDisplay(vertexDisplay, vertexPositions);
   if(selectedDisplay) updateVertexDisplay(selectedDisplay, selectedIndices.map(i => vertexPositions[i]));
-  Editor.updateBox();
 }
 
 let selectTimer: NodeJS.Timeout | null = null;

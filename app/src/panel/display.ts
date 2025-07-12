@@ -29,7 +29,7 @@ export function updateVertexDisplay(mesh: THREE.InstancedMesh, verts: THREE.Vect
 
 export function createLineDisplay(geometry: THREE.BufferGeometry): LineSegments2 {
   geometry.computeBoundingSphere();
-  const mat = new LineMaterial({ color: 0xffffff, linewidth:1 });
+  const mat = new LineMaterial({ color: 0xffffdf, linewidth: 0.5 });
   mat.resolution.set(window.innerWidth, window.innerHeight);
   const geom = new LineSegmentsGeometry().fromEdgesGeometry(getWireframe(geometry));
   const lines = new LineSegments2(geom, mat);
@@ -57,4 +57,24 @@ export function createSelectionMarkers(points: THREE.Vector3[]): THREE.Instanced
     mesh.setMatrixAt(i, matrix);
   });
   return mesh;
+}
+export function createFaceOutlineDisplay(faces: [THREE.Vector3, THREE.Vector3, THREE.Vector3][]): LineSegments2 {
+  const positions: number[] = [];
+  for (const [a, b, c] of faces) {
+    positions.push(
+      a.x, a.y, a.z, b.x, b.y, b.z,
+      b.x, b.y, b.z, c.x, c.y, c.z,
+      c.x, c.y, c.z, a.x, a.y, a.z
+    );
+  }
+
+  const geom = new LineSegmentsGeometry();
+  geom.setPositions(positions);
+
+  const mat = new LineMaterial({ color: 0xffaa00, linewidth: 2 });
+  mat.resolution.set(window.innerWidth, window.innerHeight);
+
+  const lines = new LineSegments2(geom, mat);
+  Viewport.devScene.add(lines);
+  return lines;
 }

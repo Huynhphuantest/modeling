@@ -110,6 +110,16 @@ export function createRayFromScreen(camera:THREE.Camera, position:THREE.Vector2,
   ray.setFromCamera(mouse, camera);
   return ray.ray;
 }
+export function createRaycastFromScreen(camera:THREE.Camera, position:THREE.Vector2, bounds:DOMRect) {
+  const mouse = new THREE.Vector2(
+    ((position.x - bounds.left) / bounds.width) * 2 - 1,
+    -((position.y - bounds.top) / bounds.height) * 2 + 1
+  );
+
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(mouse, camera);
+  return ray;
+}
 export function distanceFromPointsToRay(ray: THREE.Ray, points: THREE.Vector3 | THREE.Vector3[]): number[] {
   const pts = Array.isArray(points) ? points : [points];
   return pts.map(point => {

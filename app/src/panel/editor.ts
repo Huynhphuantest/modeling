@@ -42,6 +42,7 @@ export const Editor = {
   },
 
   updateBox() {
+    Inspector.refresh();
     if (Viewport.transform.object) {
       Viewport.boundingBoxOutline.setFromObject(Viewport.transform.object);
       Viewport.boundingBoxOutline.update();

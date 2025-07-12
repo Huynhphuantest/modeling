@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Editor } from "./editor.ts";
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { GLTFLoader } from "three/examples/jsm/Addons.js";
 
 const material = new THREE.MeshStandardMaterial({ color: "#cccccc" });
 type Option = { name: string; factory: () => THREE.Object3D | void, icon:string };
@@ -97,5 +98,16 @@ addOption("Misc", "Suzanne", "ar_stickers", () => new OBJLoader().load(
   () => {},
   (err) => console.error(err)
 ));
-
+addOption("Misc", "ShaderBall", "ar_stickers", () => new OBJLoader().load(
+  "assets/shader-ball.obj",
+  (obj) => Editor.addObject(obj),
+  () => {},
+  (err) => console.error(err)
+));
+addOption("Misc", "Yoimiya", "ar_stickers", () => new GLTFLoader().load(
+  "assets/yoimiya.glb",
+  (glb) => Editor.addObject(glb.scene),
+  () => {},
+  (err) => console.error(err)
+));
 populateDropdowns();

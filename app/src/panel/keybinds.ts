@@ -9,6 +9,24 @@ import * as Vertex from './modeling/vertex';
 export const Keybinds = {
   init() {
     document.addEventListener("keydown", (e) => {
+      const active = document.activeElement;
+      if (active?.getAttribute("contenteditable") === "true") {
+        // ESC: blur the editable field
+        if (e.key === "Escape") {
+          (active as HTMLElement).blur();
+          e.preventDefault();
+        }
+
+        // ENTER: blur instead of insert newline
+        if (e.key === "Enter") {
+          (active as HTMLElement).blur();
+          e.preventDefault();
+        }
+
+        // prevent rest of keybinds while editing
+        return;
+      }
+      
       const modifier = e.ctrlKey || e.metaKey; // support Mac too
 
       if (modifier) {
@@ -23,6 +41,7 @@ export const Keybinds = {
           case '8': Mode.set(7); break;
           case '9': Mode.set(8); break;
         }
+        return;
       }
       switch(Mode.current) {
         case "layout": switch (e.key) {
@@ -43,8 +62,9 @@ export const Keybinds = {
           case 'k': Modeling.knife(); break;
           case 'm': Modeling.merge(); break;
 
-          case 'v': Modeling.vertex(); break;
-          case 'c': Modeling.face(); break;
+          case '1': Modeling.vertex(); break;
+          case '2': Modeling.edge(); break;
+          case '3': Modeling.face(); break;
         } break;
       }
     });

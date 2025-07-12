@@ -8,9 +8,10 @@ import * as THREE from 'three';
 import { Mode } from './mode';
 
 let transform!: TransformControls;
-let currentMode: 'vertex' | 'face' = 'vertex';
+let currentMode: 'vertex' | 'edge' | 'face' = 'vertex';
 let modelModes!:Function[];
 let modelTools!:Function[];
+let selected:THREE.Mesh|null;
 
 export const Modeling = {
   vertexPositions: [] as THREE.Vector3[],
@@ -37,13 +38,14 @@ export const Modeling = {
     this.transform = transform;
 
     Vertex.init(this.dummy, transform, container);
-    Face.init(); // TODO
+    Face.init(this.dummy, transform, container); // TODO
     Edge.init(container);
 
     Viewport.addDev(this.dummy);
 
     modelModes = getButtons(".model-mode button", [
       () => vertex(),
+      () => edge(),
       () => face(),
     ]);
 
@@ -59,16 +61,19 @@ export const Modeling = {
 
   transform,
 
-  setMode(mode: 'vertex' | 'face') {
+  setMode(mode: 'vertex' | 'edge' | 'face') {
     currentMode = mode;
     transform.detach();
     switch (currentMode) {
       case 'vertex': Vertex.enable(true); Face.enable(false); break;
       case 'face': Vertex.enable(false); Face.enable(true); break;
     }
+    if(selected) this.select(selected);
   },
 
   select(obj: THREE.Object3D) {
+    if(!(obj instanceof THREE.Mesh)) return;
+    selected = obj;
     switch (currentMode) {
       case 'vertex': Vertex.select(obj); break;
       case 'face': Face.select(obj); break;
@@ -77,6 +82,7 @@ export const Modeling = {
   },
 
   drop() {
+    selected = null;
     Vertex.drop();
     Face.drop();
     Edge.drop();
@@ -84,7 +90,8 @@ export const Modeling = {
 
   // === Tool shortcuts (for Keybinds) ===
   vertex() { modelModes[0]() },
-  face() { modelModes[1]() },
+  edge() { modelModes[1]() },
+  face() { modelModes[2]() },
 
   unset() { modelTools[0]() },
   extrude() { modelTools[1]() },
@@ -95,6 +102,7 @@ export const Modeling = {
 };
 
 function vertex() { Modeling.setMode('vertex'); }
+function edge() { Modeling.setMode('edge'); }
 function face() { Modeling.setMode('face'); }
 
 function unset() { console.log('Unset'); }

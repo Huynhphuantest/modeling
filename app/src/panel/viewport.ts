@@ -92,11 +92,13 @@ export const Viewport = {
         devScene.add(transform.getHelper());
         transform.enabled = true;
         if(selectedObject) transform.attach(selectedObject);
+        boundingBoxOutline.visible = true;
       }
       else {
         devScene.remove(transform.getHelper());
         transform.enabled = false;
         transform.detach();
+        boundingBoxOutline.visible = false;
       }
     });
   },

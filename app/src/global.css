@@ -49,6 +49,12 @@
     --fs-lg: clamp(1.25rem, 1vw + 1.1rem, 1.625rem);   /* 20 → 30px */
     --fs-xl: clamp(1.5rem, 1vw + 1.5rem, 1.875rem);    /* 24 → 34px */
 }
+[contenteditable="true"] {
+  white-space: nowrap;
+  overflow: hidden;
+  outline: none;
+  user-select: text;
+}
 a {
   all:unset;
 }
