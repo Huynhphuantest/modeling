@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { Viewport } from './viewport';
 import { getWireframe } from './util';
+import { LineSegments2 } from 'three/examples/jsm/Addons.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/Addons.js';
+import { LineMaterial } from 'three/examples/jsm/Addons.js';
 
 const vertexGeometry = new THREE.SphereGeometry(1, 8, 8);
 const vertexMaterial = new THREE.MeshBasicMaterial({ color: 'orange' });
@@ -24,15 +27,20 @@ export function updateVertexDisplay(mesh: THREE.InstancedMesh, verts: THREE.Vect
   mesh.instanceMatrix.needsUpdate = true;
 }
 
-export function createLineDisplay(geometry: THREE.BufferGeometry): THREE.LineSegments {
-  const mat = new THREE.LineBasicMaterial({ color: 0xffffff });
-  const lines = new THREE.LineSegments(getWireframe(geometry), mat);
+export function createLineDisplay(geometry: THREE.BufferGeometry): LineSegments2 {
+  geometry.computeBoundingSphere();
+  const mat = new LineMaterial({ color: 0xffffff, linewidth:1 });
+  mat.resolution.set(window.innerWidth, window.innerHeight);
+  const geom = new LineSegmentsGeometry().fromEdgesGeometry(getWireframe(geometry));
+  const lines = new LineSegments2(geom, mat);
   Viewport.devScene.add(lines);
   return lines;
 }
 
-export function updateLineDisplay(line: THREE.LineSegments, mesh: THREE.Mesh) {
-  line.geometry = getWireframe(mesh.geometry);
+export function updateLineDisplay(line: LineSegments2, mesh: THREE.Mesh) {
+  const geom = new LineSegmentsGeometry().fromEdgesGeometry(getWireframe(mesh.geometry));
+  line.geometry.dispose();
+  line.geometry = geom;
   line.position.copy(mesh.position);
   line.quaternion.copy(mesh.quaternion);
   line.scale.copy(mesh.scale);
@@ -42,7 +50,7 @@ export function createSelectionMarkers(points: THREE.Vector3[]): THREE.Instanced
   const mesh = new THREE.InstancedMesh(vertexGeometry, selectedMaterial, points.length);
   points.forEach((v, i) => {
     const dist = v.distanceTo(Viewport.camera.position);
-    const s = Math.min(0.0125 * 1.25 * dist, 0.05 * 1.25);
+    const s = Math.min(0.0125 * 1.5 * dist, 0.05 * 1.5);
     const matrix = new THREE.Matrix4()
       .makeTranslation(v.x, v.y, v.z)
       .multiply(new THREE.Matrix4().makeScale(s, s, s));

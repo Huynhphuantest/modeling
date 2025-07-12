@@ -4,6 +4,7 @@ import { Modeling } from "./modeling";
 import { Tool } from "./tool";
 import { getElement } from "./util";
 import { Viewport } from "./viewport";
+import * as Vertex from './modeling/vertex';
 
 export const Keybinds = {
   init() {
@@ -23,7 +24,6 @@ export const Keybinds = {
           case '9': Mode.set(8); break;
         }
       }
-      console.log(Mode.current)
       switch(Mode.current) {
         case "layout": switch (e.key) {
           case 'Backspace': Editor.delete(); break;
@@ -35,6 +35,7 @@ export const Keybinds = {
           case '=': getElement("#add-object-dropdown > .dropdown-selected").click()
         } break;
         case "modeling": switch (e.key) {
+          case 'f': { Viewport.focus(); Vertex.update()} break;
           case 'u': Modeling.unset(); break;
           case 'e': Modeling.extrude(); break;
           case 'i': Modeling.inset(); break;
@@ -43,8 +44,7 @@ export const Keybinds = {
           case 'm': Modeling.merge(); break;
 
           case 'v': Modeling.vertex(); break;
-          case 'l': Modeling.line(); break;
-          case 'c': Modeling.merge(); break;
+          case 'c': Modeling.face(); break;
         } break;
       }
     });

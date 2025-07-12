@@ -1,5 +1,20 @@
 import * as THREE from 'three';
+import { TransformControls } from 'three/examples/jsm/Addons.js';
+import { Viewport } from './viewport';
 const elementsMap = new Map<string, HTMLElement>();
+export function fixTransformControls(tf:TransformControls) {
+  tf.addEventListener("change", () => {
+    if (!tf.object) return;
+    const anyTf = tf as any;
+    tf.object.updateMatrixWorld();
+    tf.object.parent?.updateMatrixWorld();
+    tf.object.matrixWorld.decompose(anyTf.worldPosition, anyTf.worldQuaternion, anyTf._worldScale);
+
+    anyTf._plane.quaternion.copy(Viewport.camera.quaternion);
+    anyTf._plane.position.copy(anyTf.worldPosition);
+    anyTf._plane.updateMatrixWorld(true);
+  });
+}
 export function isDropdownOpen(element:HTMLElement) {
   return (element.querySelector(".dropdown-options") as HTMLElement)!.style.display !== "none";
 }
