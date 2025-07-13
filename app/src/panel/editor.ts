@@ -8,11 +8,13 @@ import { Keybinds } from './keybinds';
 import { Mode } from './mode';
 import { fixTransformControls } from './util';
 import { Helper } from './helper';
+import { Material } from './material';
 
 export const Editor = {
   init(container: HTMLDivElement) {
     Viewport.init(container);
     Modeling.init(container);
+    Material.init(container);
     Tool.init();
     Keybinds.init();
     this.setupPicking();

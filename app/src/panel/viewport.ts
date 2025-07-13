@@ -49,6 +49,7 @@ function onResize() {
 
 function startRenderLoop() {
   function render() {
+    if(!enabled) return;
     requestAnimationFrame(render);
     renderer.clear();
     renderer.render(scene, camera);
@@ -76,8 +77,19 @@ function setupPicking(callback: (object: THREE.Object3D | null) => void) {
   });
 }
 
+let enabled = true;
 export const Viewport = {
   frame: 0,
+  set enabled(value:boolean) {
+    if(enabled === value) return;
+    enabled = value;
+    if(enabled) {
+      startRenderLoop();
+      renderer.domElement.style.display = "";
+    } else {
+      renderer.domElement.style.display = "none";
+    }
+  },
   init(containerElement: HTMLElement) {
     container = containerElement;
     setupRenderer();
