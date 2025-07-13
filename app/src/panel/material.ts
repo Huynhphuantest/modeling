@@ -65,7 +65,6 @@ function onResize() {
 function startRenderLoop() {
   function render() {
     if(!enabled) return;
-    console.log('e');
     requestAnimationFrame(render);
     renderer.clear();
     renderer.render(scene, camera);
