@@ -8,6 +8,9 @@
     display:flex;
     align-items: baseline;
 }
+#hierarchy-container .selected {
+    color:var(--prm-40);
+}
 #hierarchy-container .icon {
     transform: translateY(7.5%);
     margin-right: var(--spc-xs);

@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { castRayFromScreen, deleteMesh, disableBrowserBehavior } from './util';
 import { Mode } from './mode';
+import { getHelper } from './helper';
 
 let container: HTMLElement = document.body;
 let selectedObject: THREE.Object3D | null = null;
@@ -111,7 +112,10 @@ export const Viewport = {
   get boundingBoxOutline() { return boundingBoxOutline; },
   get selected() { return selectedObject; },
 
-  addObject(obj: THREE.Object3D) { scene.add(obj); },
+  addObject(obj: THREE.Object3D) { 
+    scene.add(obj);
+    const helper = getHelper(obj);
+  },
   removeObject(obj: THREE.Object3D) { deleteMesh(obj); },
   addDev(obj: THREE.Object3D) { devScene.add(obj); },
   removeDev(obj: THREE.Object3D) { devScene.remove(obj); },

@@ -84,7 +84,10 @@ addCategory("Mesh", "grid_4x4");
 addOption("Mesh", "Mesh", "stroke_full", () => new THREE.Mesh());
 addOption("Mesh", "Instanced", "host", () => new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.Material(), 0));
 addOption("Mesh", "Batched", "shadow", () => new THREE.BatchedMesh(0, 0));
-addOption("Mesh", "Skinned", "draw_collage", () => new THREE.SkinnedMesh());
+addOption("Mesh", "Skinned", "draw_collage", () => new THREE.SkinnedMesh(
+  new THREE.CapsuleGeometry(),
+  new THREE.MeshBasicMaterial(),
+));
 
 // Group
 addCategory("Misc", "more_horiz");

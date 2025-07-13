@@ -7,6 +7,7 @@ import { Tool } from './tool';
 import { Keybinds } from './keybinds';
 import { Mode } from './mode';
 import { fixTransformControls } from './util';
+import { Helper } from './helper';
 
 export const Editor = {
   init(container: HTMLDivElement) {
@@ -43,6 +44,7 @@ export const Editor = {
 
   updateBox() {
     Inspector.refresh();
+    Helper.updateAll();
     if (Viewport.transform.object) {
       Viewport.boundingBoxOutline.setFromObject(Viewport.transform.object);
       Viewport.boundingBoxOutline.update();

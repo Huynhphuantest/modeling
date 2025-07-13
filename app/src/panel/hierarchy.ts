@@ -97,6 +97,8 @@ export const Hierarchy = {
       // Select on click
       header.addEventListener('click', () => {
         Editor.select(object);
+        panel.querySelector(".selected")?.classList.remove('selected');
+        header.classList.add('selected');
       });
 
       // Drag start
