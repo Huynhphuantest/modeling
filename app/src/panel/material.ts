@@ -35,7 +35,7 @@ function setupScene() {
   light1.intensity = 3.2;
   scene.add(light1);
   const light2 = new THREE.DirectionalLight();
-  light2.position.set(-1, -0.5, 1);
+  light2.position.set(-1, -0.5, -2);
   light2.intensity = 2.2;
   scene.add(light2);
   const ambient = new THREE.AmbientLight();

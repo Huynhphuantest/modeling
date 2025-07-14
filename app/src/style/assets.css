@@ -1,0 +1,21 @@
+#assets-container {
+    display:flex;
+    flex-wrap: wrap;
+    color:white;
+    gap:var(--spc-sm);
+}
+.asset {
+}
+.head {
+    font-size:var(--fs-sm);
+}
+.display {
+    background:var(--scn-70);
+    width:5rem;
+    height:5rem;
+    overflow:hidden;
+    font-size:var(--fs-md);
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -55,7 +55,7 @@ export const Mode = {
 }
 Mode.add("widgets", "Layout", ["inspector", "hierarchy", "assets", "tool"]).click();
 Mode.add("edit", "Modeling", ["inspector", "function", "modeling"]);
-Mode.add("brush", "Material", []);
+Mode.add("brush", "Material", ["material"]);
 Mode.add("texture", "Textures", []);
 Mode.add("animation", "Animation", ["inspector", "hierarchy", "timeline"]);
 Mode.add("add_a_photo", "Shaders", []);

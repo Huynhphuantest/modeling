@@ -9,6 +9,7 @@ import { Mode } from './mode';
 import { fixTransformControls } from './util';
 import { Helper } from './helper';
 import { Material } from './material';
+import { AssetManager } from './asset';
 
 export const Editor = {
   init(container: HTMLDivElement) {
@@ -17,6 +18,7 @@ export const Editor = {
     Material.init(container);
     Tool.init();
     Keybinds.init();
+    AssetManager.render();
     this.setupPicking();
     this.setupTransformSync();
   },
