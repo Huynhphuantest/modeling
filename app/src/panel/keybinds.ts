@@ -53,6 +53,15 @@ export const Keybinds = {
 
           case '=': getElement("#add-object-dropdown > .dropdown-selected").click()
         } break;
+        case "animation": switch (e.key) {
+          case 'Backspace': Editor.delete(); break;
+          case 'f': Viewport.focus(); break;
+          case 't': Tool.translate(); break;
+          case 'r': Tool.rotate(); break;
+          case 's': Tool.scale(); break;
+
+          case '=': getElement("#add-object-dropdown > .dropdown-selected").click()
+        } break;
         case "modeling": switch (e.key) {
           case 'f': { Viewport.focus(); Vertex.update()} break;
           case 'u': Modeling.unset(); break;

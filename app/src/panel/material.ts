@@ -44,14 +44,15 @@ function setupScene() {
   new OBJLoader().load(
     "assets/shader-ball.obj",
     (obj) => {
+      if(!obj) return console.error("Shader ball load is null or undefined")
       scene.add(obj);
       obj.position.y = 2;
       const s = 0.05;
       obj.scale.set(s, s, s);
     },
     () => {},
-    (err) => console.error(err)
-  )
+    (err) => { console.error("Shader ball load failed: "+err) }
+  );
 }
 
 function onResize() {

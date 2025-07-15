@@ -1,8 +1,6 @@
 import DOMPurify from "dompurify";
 import * as THREE from 'three';
 
-const panel = document.getElementById("assets-container")!;
-
 //
 // ─── CREATE NODE ─────────────────────────────────────────────────────────────
 //
@@ -109,10 +107,19 @@ export const Assets = {
 //
 // ─── ASSET MANAGER ───────────────────────────────────────────────────────────
 //
+
+let panel = document.body;
 export const AssetManager = {
     assets: [] as Asset[],
     dragged: null as Asset | null,
+    init() {
+        panel = document.getElementById("assets-container")!;
+        const material = new THREE.MeshStandardMaterial({ color: 'red' });
+        AssetManager.add(new Assets.Material("Red"));
 
+        const cube = new THREE.Mesh(new THREE.BoxGeometry(), material);
+        AssetManager.add(new Assets.Object3D("Cube"));
+    },
     add(asset: Asset) {
         this.assets.push(asset);
         this.render();
@@ -160,9 +167,3 @@ export const AssetManager = {
         });
     }
 };
-// Add a Three.js material and object
-const material = new THREE.MeshStandardMaterial({ color: 'red' });
-AssetManager.add(new Assets.Material("Red"));
-
-const cube = new THREE.Mesh(new THREE.BoxGeometry(), material);
-AssetManager.add(new Assets.Object3D("Cube"));

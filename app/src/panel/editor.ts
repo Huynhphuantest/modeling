@@ -10,15 +10,21 @@ import { fixTransformControls } from './util';
 import { Helper } from './helper';
 import { Material } from './material';
 import { AssetManager } from './asset';
+import { TimelineManager } from './timeline';
 
 export const Editor = {
   init(container: HTMLDivElement) {
     Viewport.init(container);
     Modeling.init(container);
-    Material.init(container);
+    //Material.init(container);
     Tool.init();
     Keybinds.init();
+
+    AssetManager.init();
     AssetManager.render();
+
+    TimelineManager.init();
+    
     this.setupPicking();
     this.setupTransformSync();
   },
@@ -62,7 +68,7 @@ export const Editor = {
   },
 
   drop() {
-    if (Mode.current !== "layout") return;
+    if (Mode.current !== "layout" && Mode.current !== "animation") return;
     Viewport.drop();
     Modeling.drop();
     Inspector.clear();
@@ -82,5 +88,6 @@ export const Editor = {
   },
 
   get scene() { return Viewport.scene; },
-  get selected(): THREE.Object3D | null { return Viewport.selected; }
+  get selected(): THREE.Object3D | null { return Viewport.selected; },
+  clock: new THREE.Clock()
 };

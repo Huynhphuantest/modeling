@@ -4,6 +4,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { castRayFromScreen, deleteMesh, disableBrowserBehavior } from './util';
 import { Mode } from './mode';
 import { getHelper } from './helper';
+import { TimelineManager } from './timeline';
 
 let container: HTMLElement = document.body;
 let selectedObject: THREE.Object3D | null = null;
@@ -55,6 +56,7 @@ function startRenderLoop() {
     renderer.render(scene, camera);
     renderer.render(devScene, camera);
     Viewport.frame++;
+    TimelineManager.update();
   }
   render();
 }
@@ -101,7 +103,7 @@ export const Viewport = {
     window.addEventListener("resize", onResize);
     startRenderLoop();
     document.addEventListener("modechange", () => {
-      if(Mode.current === "layout") {
+      if(Mode.current === "layout" || Mode.current === "animation") {
         devScene.add(transform.getHelper());
         transform.enabled = true;
         if(selectedObject) transform.attach(selectedObject);

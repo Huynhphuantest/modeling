@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { Color } from 'three';
+import { Hierarchy } from '../panel/hierarchy';
+import { Viewport } from '../panel/viewport';
 
 export type Property = {
   type: string;
@@ -84,6 +86,7 @@ export function bindValue(obj: any, key: string, raw: any, path: string[]) {
   } else {
     const sub = obj[key];
     const prop = path[path.length - 1];
+    console.log(sub, path)
     if (sub && prop in sub) {
       sub[prop] = parseValue(raw, sub[prop]);
     }
@@ -93,12 +96,14 @@ export function bindValue(obj: any, key: string, raw: any, path: string[]) {
 // === ATTACH EVENT LISTENERS TO PANEL ===
 
 export function attachSchemaListeners(container: HTMLElement) {
-  container.addEventListener('blur', e => {
+  container.addEventListener('keyup', e => {
     const el = e.target as HTMLElement;
     if (!el.matches('[contenteditable]')) return;
     const key = el.dataset.key!;
     const path = el.dataset.path?.split('.') ?? [];
-    bindValue(currentTarget, key, el.textContent, path);
+    if(path[0] === "") bindValue(currentTarget, key, el.textContent, []);
+    else bindValue(currentTarget, key, el.textContent, path);
+    if(key === "name") Hierarchy.render(Viewport.scene);
   }, true);
 
   container.addEventListener('change', e => {

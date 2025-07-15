@@ -1,5 +1,6 @@
 #inspector-container {
     width: fit-content;
+    overflow-y:scroll;
 }
 
 #inspector-container, .group-container {
@@ -11,6 +12,7 @@
     gap: var(--spc-2xs);
     display: flex;
     flex-direction: column;
+    width:100%;
 }
 #inspector-container .group-container {
     border-left: 1px solid var(--scn-50);
@@ -30,6 +32,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0.1em 0.4em;
+    height:min-content;
 }
 
 #inspector-container .property {
@@ -37,7 +40,7 @@
     width: 100%;
     display: flex;
     align-items: flex-end;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: var(--spc-xs);
     padding-left:1ch;
 }
@@ -70,10 +73,11 @@
 
 #inspector-container .value {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: var(--spc-2xs);
     padding: 0 var(--spc-2xs);
     width: 100%;
+    height:min-content;
 }
 
 #inspector-container .object {

@@ -62,8 +62,24 @@
     </div>
 </div>
 <!-- Timeline -->
-<div class="panel" id="timeline" data-column="center">
+<div class="panel tool-container" id="timeline-tool" data-column="center">
+    <div class="tool-button-container">
+        <button class="tool-button icon toggleable">resume</button>
+    </div>
+    <div class="tool-button-container">
+        <button class="tool-button icon">nearby</button>
+    </div>
+</div>
+<div class="panel timeline-span" id="timeline-hierarchy" data-column="left">
     <div class="header">Timeline</div>
+    <div id="timeline-hierarchy-container"></div>
+</div>
+<div class="panel timeline-span" id="timeline-edit" data-column="center">
+    <div class="header"></div>
+    <div id="timeline-container">
+        <div id="timeline-stamp">00:01</div>
+        <div id="timeline-graph"></div>
+    </div>
 </div>
 <!-- Material -->
 <div class="panel" id="material" data-column="right">
