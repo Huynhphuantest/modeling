@@ -9,10 +9,12 @@ export class Expandable extends UIComponent {
     icon && (icon.innerText = "keyboard_arrow_down");
 
     target.addEventListener("click", e => e.stopPropagation());
+    el.classList.toggle("open");
 
     el.addEventListener("click", () => {
       const hidden = target.style.display === "none";
       target.style.display = hidden ? "" : "none";
+      el.classList.toggle("open");
       icon && (icon.innerText = hidden ? "keyboard_arrow_down" : "keyboard_arrow_up");
     });
     (el as HTMLElement).click?.(); //close by default, kinda wonky but it works

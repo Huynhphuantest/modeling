@@ -26,13 +26,17 @@
     background: var(--scn-60);
     font-size: var(--fs-2xs);
     width: max-content;
-    max-width: 10ch;
+    max-width: 14ch;
     min-width: 1ch;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0.1em 0.4em;
     height:min-content;
+    font-family: 'Courier New', Courier, monospace
+}
+#inspector-container .display[contenteditable="true"] {
+    min-width: 3ch;
 }
 
 #inspector-container .property {
@@ -95,9 +99,12 @@
     display: flex;
     align-items: center;
     font-size: var(--fs-xs);
-    font-weight: 500;
     gap: var(--spc-xs);
 }
+#inspector-container .expandable.open {
+    font-weight:500;
+}
+
 #inspector-container .group-header > div {
     display:flex;
     font-size: var(--fs-xs);

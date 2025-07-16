@@ -11,6 +11,7 @@
 }
 #mode-selector > button {
     all:unset;
+    transition:color 0.25s;
     color:var(--ttr-10);
     display:flex;
     gap:var(--spc-xl);
@@ -20,8 +21,14 @@
 #mode-selector > button:not(.selected) {
     color:var(--ttr-30);
 }
+#mode-selector > button > div > span {
+    transition: filter 0.25s, scale 0.25s ease-in;
+    transform: scale(1.15);
+    filter:saturate(100%) brightness(100%);
+}
 #mode-selector > button:not(.selected) > div > span {
     filter:saturate(80%) brightness(50%);
+    transform: scale(1);
 }
 #mode-selector > button > div {
     display:flex;
