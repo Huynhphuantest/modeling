@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TransformControls } from 'three/examples/jsm/Addons.js';
+import { BufferGeometryUtils, TransformControls } from 'three/examples/jsm/Addons.js';
 import { Viewport } from './viewport';
 const elementsMap = new Map<string, HTMLElement>();
 export function fixTransformControls(tf:TransformControls) {
@@ -217,4 +217,12 @@ export function getPointsInFrustum(
   points: THREE.Vector3[]
 ): THREE.Vector3[] {
   return points.filter(p => frustum.containsPoint(p));
+}
+export function toIndexed(mesh:THREE.Mesh) {
+  const geometry = mesh.geometry;
+  const indexed = BufferGeometryUtils.mergeVertices(geometry);
+  geometry.dispose();
+  mesh.geometry = indexed;
+  indexed.computeBoundingBox();
+  indexed.computeBoundingSphere();
 }

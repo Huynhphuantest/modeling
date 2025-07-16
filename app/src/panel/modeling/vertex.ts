@@ -89,7 +89,13 @@ export function init(sharedDummy: THREE.Object3D, transformControl: any, contain
         }
       }
     
-      if (pointIndices.length === 0) return drop();
+      if (pointIndices.length === 0) {
+        transform.detach();
+        selectedIndices = [];
+        if(selectedDisplay) Viewport.removeDev(selectedDisplay);
+        selectedDisplay = null;
+        return;
+      }
     
       pointIndices.forEach(index => {
         const i = selectedIndices.indexOf(index);

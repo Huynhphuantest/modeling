@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Viewport } from '../viewport';
 import { TransformControls, LineSegments2 } from 'three/examples/jsm/Addons.js';
-import { createRaycastFromScreen, getVertices } from '../util';
+import { createRaycastFromScreen, getVertices, toIndexed } from '../util';
 import { createFaceOutlineDisplay } from '../display';
 
 let selected: THREE.Mesh | null = null;
@@ -78,6 +78,8 @@ export function enable(flag: boolean) {
 
 export function select(obj: THREE.Object3D) {
   if (!(obj instanceof THREE.Mesh)) return;
+  const index = obj.geometry.getIndex();
+  if(!index) { toIndexed(obj); console.warn("Automatically indexing geometry") }
   selected = obj;
   vertexPositions = getVertices(selected);
   updateSelectionDisplay();
@@ -100,8 +102,10 @@ function clearDisplay() {
 }
 
 function getVertexIndicesOfFace(geometry: THREE.BufferGeometry, faceIndex: number): [number, number, number] {
-  const indexAttr = geometry.getIndex();
-  if (!indexAttr) throw new Error('Geometry must be indexed');
+  let indexAttr = geometry.getIndex();
+  if (!indexAttr) {
+    throw new Error('Geometry must be indexed');
+  }
   return [
     indexAttr.getX(faceIndex * 3),
     indexAttr.getX(faceIndex * 3 + 1),
