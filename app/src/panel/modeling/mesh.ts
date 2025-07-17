@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
+import { toIndexed } from '../util';
 
 export type Edge = [number, number];
 export type Face = [number, number, number];
@@ -14,11 +14,13 @@ export class EditableMesh {
 
   selectedVertices = new Set<number>();
   selectedEdges = new Set<string>();
+  vertMap: Map<number, number> = new Map(); // Add this field in the class
 
   constructor(mesh: THREE.Mesh) {
     this.mesh = mesh;
     this.geometry = mesh.geometry as THREE.BufferGeometry;
     this.rebuildFromGeometry();
+    this.commit();
   }
 
   dispose() {
@@ -27,7 +29,9 @@ export class EditableMesh {
     this.edges.clear();
     this.selectedVertices.clear();
     this.selectedEdges.clear();
+    this.vertMap.clear();
   }
+
 
   rebuildFromGeometry() {
     this.dispose();
@@ -35,13 +39,11 @@ export class EditableMesh {
     const posAttr = this.geometry.getAttribute('position');
     let indexAttr = this.geometry.getIndex();
     if (!indexAttr) {
-      BufferGeometryUtils.mergeVertices(this.geometry, 5-2);
+      toIndexed(this.mesh);
       indexAttr = this.geometry.getIndex()!;
     }
 
-    const vertMap = new Map<number, number>(); // input index → deduped vertex index
     const uniqueVerts: THREE.Vector3[] = [];
-
     const toleranceSq = 1e-10;
 
     for (let i = 0; i < posAttr.count; i++) {
@@ -57,7 +59,7 @@ export class EditableMesh {
         found = uniqueVerts.length;
         uniqueVerts.push(v);
       }
-      vertMap.set(i, found);
+      this.vertMap.set(i, found);
     }
 
     this.vertices = uniqueVerts;
@@ -67,9 +69,9 @@ export class EditableMesh {
       const ib = indexAttr.getX(i + 1);
       const ic = indexAttr.getX(i + 2);
 
-      const a = vertMap.get(ia)!;
-      const b = vertMap.get(ib)!;
-      const c = vertMap.get(ic)!;
+      const a = this.vertMap.get(ia)!;
+      const b = this.vertMap.get(ib)!;
+      const c = this.vertMap.get(ic)!;
 
       this.faces.push([a, b, c]);
       this.addEdge(a, b);
@@ -82,15 +84,28 @@ export class EditableMesh {
 
   setVertex(index: number, position: THREE.Vector3) {
     this.vertices[index].copy(position);
-    this.commitToMesh();
+    this.commit();
   }
 
   getVertex(index: number): THREE.Vector3 {
     return this.vertices[index];
   }
 
+  getVertexWorld(index: number): THREE.Vector3 {
+    return this.mesh.localToWorld(this.vertices[index].clone());
+  }
+
+  setVertexWorld(index: number, worldPos: THREE.Vector3): void {
+    const local = this.mesh.worldToLocal(worldPos.clone());
+    this.setVertex(index, local);
+  }
+
   getVertexPositions(): THREE.Vector3[] {
     return this.vertices;
+  }
+
+  getVertexWorldPositions(): THREE.Vector3[] {
+    return this.vertices.map(v => this.mesh.localToWorld(v.clone()));
   }
 
   getSelectedVertexIndices(): number[] {
@@ -105,7 +120,7 @@ export class EditableMesh {
     for (const i of indices) {
       this.vertices[i].add(delta);
     }
-    this.commitToMesh();
+    this.commit();
   }
   clearVertexSelection(): void {
     this.selectedVertices.clear();
@@ -136,102 +151,27 @@ export class EditableMesh {
     this.selectedEdges.add(`${min}:${max}`);
   }
 
-  extrudeSelected(amount = 1) {
-    const offset = new THREE.Vector3(0, 0, amount);
-    const duplicationMap = new Map<number, number>();
+  commit(): void {
+    const posAttr = this.geometry.getAttribute('position') as THREE.BufferAttribute;
+    if (!posAttr || !this.vertMap) return;
 
-    for (const i of this.selectedVertices) {
-      const newIndex = this.vertices.length;
-      this.vertices.push(this.vertices[i].clone().add(offset));
-      duplicationMap.set(i, newIndex);
+    for (let i = 0; i < posAttr.count; i++) {
+      const mappedIndex = this.vertMap.get(i);
+      if (mappedIndex === undefined) continue;
+      const v = this.vertices[mappedIndex];
+      posAttr.setXYZ(i, v.x, v.y, v.z);
     }
 
-    for (const key of this.selectedEdges) {
-      const [a, b] = key.split(':').map(Number);
-      const a2 = duplicationMap.get(a);
-      const b2 = duplicationMap.get(b);
-      if (a2 == null || b2 == null) continue;
-
-      this.faces.push([a, b, b2]);
-      this.faces.push([b2, a2, a]);
-
-      this.addEdge(a, b);
-      this.addEdge(b, b2);
-      this.addEdge(b2, a2);
-      this.addEdge(a2, a);
-    }
-
-    this.commitToMesh();
-  }
-
-  mergeVertices(tolerance = 1e-6) {
-    const toleranceSq = tolerance * tolerance;
-    const newVerts: THREE.Vector3[] = [];
-    const remap = new Map<number, number>();
-
-    for (let i = 0; i < this.vertices.length; i++) {
-      const v = this.vertices[i];
-      let found = -1;
-      for (let j = 0; j < newVerts.length; j++) {
-        if (newVerts[j].distanceToSquared(v) < toleranceSq) {
-          found = j;
-          break;
-        }
-      }
-      if (found === -1) {
-        found = newVerts.length;
-        newVerts.push(v.clone());
-      }
-      remap.set(i, found);
-    }
-
-    const newFaces: Face[] = [];
-    const edgeSet = new Set<string>();
-
-    for (const [a, b, c] of this.faces) {
-      const ia = remap.get(a)!;
-      const ib = remap.get(b)!;
-      const ic = remap.get(c)!;
-      if (ia !== ib && ib !== ic && ic !== ia) {
-        newFaces.push([ia, ib, ic]);
-        edgeSet.add(this.edgeKey(ia, ib));
-        edgeSet.add(this.edgeKey(ib, ic));
-        edgeSet.add(this.edgeKey(ic, ia));
-      }
-    }
-
-    this.vertices = newVerts;
-    this.faces = newFaces;
-    this.edges = edgeSet;
-
-    this.commitToMesh();
-  }
-
-  edgeKey(a: number, b: number): string {
-    return a < b ? `${a}:${b}` : `${b}:${a}`;
-  }
-
-  commitToMesh() {
-    const pos = new Float32Array(this.faces.length * 9);
-    let i = 0;
-    for (const [a, b, c] of this.faces) {
-      pos.set(this.vertices[a].toArray(), i);
-      pos.set(this.vertices[b].toArray(), i + 3);
-      pos.set(this.vertices[c].toArray(), i + 6);
-      i += 9;
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.computeVertexNormals();
-
-    this.mesh.geometry.dispose();
-    this.mesh.geometry = geo;
-    this.geometry = geo;
+    posAttr.needsUpdate = true;
+    this.geometry.computeBoundingBox();
+    this.geometry.computeBoundingSphere();
   }
 
   getSelectedEdges(): [THREE.Vector3, THREE.Vector3][] {
     return Array.from(this.selectedEdges).map(k => this.getEdgeVertices(k));
+  }
+  getFaceVertexIndices(index: number): [number, number, number] {
+    return this.faces[index];
   }
 
   clearSelection() {

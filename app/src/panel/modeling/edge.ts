@@ -128,8 +128,8 @@ function updateTransformOrigin() {
   const edgeSegments: [THREE.Vector3, THREE.Vector3][] = [];
 
   for (const [i0, i1] of selectedEdges) {
-    const a = selected.vertices[i0];
-    const b = selected.vertices[i1];
+    const a = selected.getVertexWorld(i0);
+    const b = selected.getVertexWorld(i1);
     center.add(a).add(b);
     edgeSegments.push([a.clone(), b.clone()]);
   }

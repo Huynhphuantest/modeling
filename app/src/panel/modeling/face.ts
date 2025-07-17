@@ -103,18 +103,21 @@ function updateSelectionDisplay() {
 
   const faceTriangles: [THREE.Vector3, THREE.Vector3, THREE.Vector3][] = [];
   const center = new THREE.Vector3();
+  let total = 0;
 
   for (const f of selectedIndices) {
-    const [a, b, c] = selected.faces[f];
-    const va = selected.vertices[a];
-    const vb = selected.vertices[b];
-    const vc = selected.vertices[c];
+    const indices = selected.getFaceVertexIndices(f);
+    const v0 = selected.getVertexWorld(indices[0]);
+    const v1 = selected.getVertexWorld(indices[1]);
+    const v2 = selected.getVertexWorld(indices[2]);
 
-    center.add(va).add(vb).add(vc);
-    faceTriangles.push([va.clone(), vb.clone(), vc.clone()]);
+    center.add(v0).add(v1).add(v2);
+    total += 3;
+
+    faceTriangles.push([v0.clone(), v1.clone(), v2.clone()]);
   }
 
-  center.divideScalar(selectedIndices.length * 3);
+  center.divideScalar(total);
   dummy.position.copy(center);
   dummyOrigin.copy(center);
   transform.attach(dummy);
@@ -128,22 +131,20 @@ function onTransformMove() {
   if (!selected || selectedIndices.length === 0) return;
 
   const worldDelta = dummy.position.clone().sub(dummyOrigin);
-  const localDelta = selected.mesh.worldToLocal(
-    selected.mesh.localToWorld(worldDelta.clone())
-  );
+  const localDelta = selected.mesh.worldToLocal(selected.mesh.localToWorld(worldDelta.clone()));
   dummyOrigin.copy(dummy.position);
 
   const moved = new Set<number>();
-  for (const faceIndex of selectedIndices) {
-    const [a, b, c] = selected.faces[faceIndex];
-    for (const i of [a, b, c]) {
-      if (moved.has(i)) continue;
-      moved.add(i);
 
-      const updated = selected.vertices[i].clone().add(localDelta);
-      selected.setVertex(i, updated);
+  for (const faceIndex of selectedIndices) {
+    const indices = selected.getFaceVertexIndices(faceIndex);
+    for (const i of indices) {
+      if (!moved.has(i)) {
+        moved.add(i);
+      }
     }
   }
 
-  updateSelectionDisplay(); // Redraw face outline
+  selected.moveVertices(Array.from(moved), localDelta);
+  updateSelectionDisplay();
 }

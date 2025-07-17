@@ -84,14 +84,14 @@ export function update() {
 
 function updateAllDisplays() {
   if (!selected) return;
-  if(vertexDisplay) updateVertexDisplay(vertexDisplay, selected.getVertexPositions());
-  if(selectedDisplay) updateVertexDisplay(selectedDisplay, selectedIndices.map(i => selected!.getVertex(i)));
+  if(vertexDisplay) updateVertexDisplay(vertexDisplay, selected.getVertexWorldPositions());
+  if(selectedDisplay) updateVertexDisplay(selectedDisplay, selectedIndices.map(i => selected!.getVertexWorld(i)));
 }
 
 function updateVertexDisplayFromMesh() {
   if (!selected || !enabled) return;
 
-  const vertices = selected.getVertexPositions();
+  const vertices = selected.getVertexWorldPositions();
   if (!vertexDisplay) {
     vertexDisplay = createVertexDisplay(vertices);
     Viewport.addDev(vertexDisplay);
@@ -108,7 +108,7 @@ function updateTransformOrigin() {
   }
 
   const center = new THREE.Vector3();
-  selectedIndices.forEach(i => center.add(selected!.getVertex(i)));
+  selectedIndices.forEach(i => center.add(selected!.getVertexWorld(i)));
   center.divideScalar(selectedIndices.length);
 
   dummy.position.copy(center);
@@ -116,16 +116,22 @@ function updateTransformOrigin() {
   transform.attach(dummy);
 
   if (selectedDisplay) Viewport.removeDev(selectedDisplay);
-  selectedDisplay = createSelectionMarkers(selectedIndices.map(i => selected!.getVertex(i)));
+  selectedDisplay = createSelectionMarkers(selectedIndices.map(i => selected!.getVertexWorld(i)));
   Viewport.addDev(selectedDisplay);
 }
 
 function onTransformMove() {
   if (!selected || selectedIndices.length === 0) return;
 
+  // World-space delta from the dummy movement
   const worldDelta = dummy.position.clone().sub(dummyOrigin);
-  const localDelta = selected.mesh.worldToLocal(selected.mesh.localToWorld(worldDelta.clone()));
 
+  // Convert world-space delta to mesh-local delta
+  const localDelta = worldDelta.clone().applyMatrix3(
+    new THREE.Matrix3().setFromMatrix4(selected.mesh.matrixWorld).invert()
+  );
+
+  // Apply to vertices
   dummyOrigin.copy(dummy.position);
   selected.moveVertices(selectedIndices, localDelta);
 
@@ -141,7 +147,7 @@ function selectVertexFromClick(e: PointerEvent) {
   if (dragDelta.lengthSq() > 4 || timeElapsed > 200 || !selected) return;
 
   const ray = createRayFromScreen(Viewport.camera, new THREE.Vector2(e.clientX, e.clientY), Viewport.renderer.domElement.getBoundingClientRect());
-  const vertices = selected.getVertexPositions();
+  const vertices = selected.getVertexWorldPositions();
   const distances = distanceFromPointsToRay(ray, vertices);
 
   const hitIndices: number[] = [];
@@ -151,7 +157,7 @@ function selectVertexFromClick(e: PointerEvent) {
     const point = vertices[i];
     const distSq = distances[i];
     if (checkIfPointHidden(point)) continue;
-    if (distSq > 0.04) continue; // 0.2²
+    if (distSq > 0.16) continue; // 0.2²
 
     if (distSq < minDistSq) {
       minDistSq = distSq;
@@ -202,8 +208,9 @@ function onPointerDown(e: PointerEvent) {
   if (!selected || !enabled) return;
   if (selectTimer) clearTimeout(selectTimer);
 
-  const vertices = selected.getVertexPositions();
+  const vertices = selected.getVertexWorldPositions();
   selectTimer = setTimeout(() => {
+    if(!selected) return;
     new Selection(new THREE.Vector2(e.clientX, e.clientY), vertices, 'points').result(hits => {
       const newIndices = (hits as THREE.Vector3[])
         .map(v => vertices.indexOf(v))
