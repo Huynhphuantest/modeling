@@ -25,7 +25,6 @@ export const Modeling = {
         Viewport.devScene.add(transform.getHelper());
         transform.enabled = true;
         this.setMode(currentMode);
-        Edge.enable(true);
       }
       else {
         Viewport.devScene.remove(transform.getHelper());
@@ -39,7 +38,7 @@ export const Modeling = {
 
     Vertex.init(this.dummy, transform, container);
     Face.init(this.dummy, transform, container); // TODO
-    Edge.init(container);
+    Edge.init(this.dummy, transform, container);
 
     Viewport.addDev(this.dummy);
 
@@ -65,8 +64,9 @@ export const Modeling = {
     currentMode = mode;
     transform.detach();
     switch (currentMode) {
-      case 'vertex': Vertex.enable(true); Face.enable(false); break;
-      case 'face': Vertex.enable(false); Face.enable(true); break;
+      case 'vertex': Vertex.enable(true); Edge.enable(false); Face.enable(false); break;
+      case 'edge': Vertex.enable(false); Edge.enable(true); Face.enable(false); break;
+      case 'face': Vertex.enable(false); Edge.enable(false); Face.enable(true); break;
     }
     if(selected) this.select(selected);
   },
@@ -76,9 +76,9 @@ export const Modeling = {
     selected = obj;
     switch (currentMode) {
       case 'vertex': Vertex.select(obj); break;
+      case 'edge': Edge.select(obj); break;
       case 'face': Face.select(obj); break;
     }
-    Edge.select(obj);
   },
 
   drop() {
@@ -105,9 +105,9 @@ function vertex() { Modeling.setMode('vertex'); }
 function edge() { Modeling.setMode('edge'); }
 function face() { Modeling.setMode('face'); }
 
-function unset() { console.log('Unset'); }
-function extrude() { console.log('Extrude'); }
-function inset() { console.log('Inset'); }
-function bevel() { console.log('Bevel'); }
-function knife() { console.log('Knife'); }
-function merge() { console.log('Merge');  }
+function unset() { document.dispatchEvent(new CustomEvent("unset")) }
+function extrude() {  document.dispatchEvent(new CustomEvent("extrude")) }
+function inset() {  document.dispatchEvent(new CustomEvent("inset")) }
+function bevel() {  document.dispatchEvent(new CustomEvent("bevel")) }
+function knife() {  document.dispatchEvent(new CustomEvent("knife")) }
+function merge() {  document.dispatchEvent(new CustomEvent("merge")) }

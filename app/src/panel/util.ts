@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BufferGeometryUtils, TransformControls } from 'three/examples/jsm/Addons.js';
 import { Viewport } from './viewport';
+import { createVertexDisplay } from './display';
 const elementsMap = new Map<string, HTMLElement>();
 export function fixTransformControls(tf:TransformControls) {
   tf.addEventListener("change", () => {
@@ -220,9 +221,85 @@ export function getPointsInFrustum(
 }
 export function toIndexed(mesh:THREE.Mesh) {
   const geometry = mesh.geometry;
-  const indexed = BufferGeometryUtils.mergeVertices(geometry);
+  const indexed = BufferGeometryUtils.mergeVertices(geometry, 5e-2);
   geometry.dispose();
   mesh.geometry = indexed;
   indexed.computeBoundingBox();
   indexed.computeBoundingSphere();
+}
+export function getEdges(geometry: THREE.BufferGeometry): [number, number][] {
+  const index = geometry.getIndex();
+  if (!index) throw new Error('Geometry must be indexed');
+  const edgeMap = new Set<string>();
+  const result: [number, number][] = [];
+
+  for (let i = 0; i < index.count; i += 3) {
+    const a = index.getX(i);
+    const b = index.getX(i + 1);
+    const c = index.getX(i + 2);
+    [[a, b], [b, c], [c, a]].forEach(([i1, i2]) => {
+      const key = i1 < i2 ? `${i1}_${i2}` : `${i2}_${i1}`;
+      if (!edgeMap.has(key)) {
+        edgeMap.add(key);
+        result.push([i1, i2]);
+      }
+    });
+  }
+
+  return result;
+}
+export function rayToLocalSpace(ray: THREE.Ray, object: THREE.Object3D): THREE.Ray {
+  const inverseMatrix = new THREE.Matrix4().copy(object.matrixWorld).invert();
+
+  const localOrigin = ray.origin.clone().applyMatrix4(inverseMatrix);
+
+  const localDirection = ray.direction.clone().transformDirection(inverseMatrix);
+  localDirection.normalize();
+
+  return new THREE.Ray(localOrigin, localDirection);
+}
+export function findClosestEdge(
+  edgeCandidates: [number, number][],
+  vertexPositions: THREE.Vector3[],
+  ray: THREE.Ray,
+  tolerance: number
+): [number, number] | null {
+  let closest: [number, number] | null = null;
+  let minDistSq = Infinity;
+
+  for (const [i0, i1] of edgeCandidates) {
+    const a = vertexPositions[i0];
+    const b = vertexPositions[i1];
+
+    const distSq = ray.distanceSqToSegment(a, b);
+    if (distSq < tolerance && distSq < minDistSq) {
+      minDistSq = distSq;
+      closest = [i0, i1];
+    }
+  }
+  return closest;
+}
+export function findOverlappingVertices(geometry: THREE.BufferGeometry, threshold = 1e-4) {
+  const pos = geometry.attributes.position;
+  const groups: number[][] = [];
+
+  for (let i = 0; i < pos.count; i++) {
+    const vi = new THREE.Vector3().fromBufferAttribute(pos, i);
+    let found = false;
+
+    for (const group of groups) {
+      const vj = new THREE.Vector3().fromBufferAttribute(pos, group[0]);
+      if (vi.distanceTo(vj) < threshold) {
+        group.push(i);
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      groups.push([i]);
+    }
+  }
+
+  return groups;
 }

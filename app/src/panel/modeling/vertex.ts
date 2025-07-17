@@ -4,7 +4,6 @@ import { Selection } from '../selection';
 import { createRayFromScreen, distanceFromPointsToRay, getVertices } from '../util';
 import { createSelectionMarkers, createVertexDisplay, updateVertexDisplay } from '../display';
 import { TransformControls } from 'three/examples/jsm/Addons.js';
-import { Editor } from '../editor';
 
 let selected: THREE.Mesh | null = null;
 let vertexDisplay: THREE.InstancedMesh | null = null;

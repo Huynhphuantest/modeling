@@ -27,23 +27,38 @@ export function updateVertexDisplay(mesh: THREE.InstancedMesh, verts: THREE.Vect
   mesh.instanceMatrix.needsUpdate = true;
 }
 
-export function createLineDisplay(geometry: THREE.BufferGeometry): LineSegments2 {
-  geometry.computeBoundingSphere();
-  const mat = new LineMaterial({ color: 0xffffdf, linewidth: 0.5 });
+export function createEdgeDisplay(segments: [THREE.Vector3, THREE.Vector3][]): LineSegments2 {
+  const positions: number[] = [];
+
+  for (const [a, b] of segments) {
+    positions.push(a.x, a.y, a.z);
+    positions.push(b.x, b.y, b.z);
+  }
+
+  const geom = new LineSegmentsGeometry();
+  geom.setPositions(positions);
+
+  const mat = new LineMaterial({ color: 0xffaa00, linewidth: 2 });
   mat.resolution.set(window.innerWidth, window.innerHeight);
-  const geom = new LineSegmentsGeometry().fromEdgesGeometry(getWireframe(geometry));
+
   const lines = new LineSegments2(geom, mat);
   Viewport.devScene.add(lines);
   return lines;
 }
 
-export function updateLineDisplay(line: LineSegments2, mesh: THREE.Mesh) {
-  const geom = new LineSegmentsGeometry().fromEdgesGeometry(getWireframe(mesh.geometry));
-  line.geometry.dispose();
-  line.geometry = geom;
-  line.position.copy(mesh.position);
-  line.quaternion.copy(mesh.quaternion);
-  line.scale.copy(mesh.scale);
+export function updateEdgeDisplay(lines: LineSegments2, mesh: THREE.Mesh) {
+  const edgeGeom = new THREE.EdgesGeometry(mesh.geometry);
+  const lineGeom = new LineSegmentsGeometry().fromEdgesGeometry(edgeGeom);
+
+  // Replace geometry
+  lines.geometry.dispose();
+  lines.geometry = lineGeom;
+
+  // Update transform
+  mesh.updateMatrixWorld();
+  lines.position.copy(mesh.position);
+  lines.quaternion.copy(mesh.quaternion);
+  lines.scale.copy(mesh.scale);
 }
 
 export function createSelectionMarkers(points: THREE.Vector3[]): THREE.InstancedMesh {
