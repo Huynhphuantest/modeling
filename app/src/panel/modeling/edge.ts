@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import { Viewport } from '../viewport';
 import { TransformControls, LineSegments2 } from 'three/examples/jsm/Addons.js';
-import { createRaycastFromScreen, findClosestEdge, getVertices, rayToLocalSpace, toIndexed } from '../util';
+import { createRaycastFromScreen, findClosestEdge, rayToLocalSpace, toIndexed } from '../util';
 import { createEdgeDisplay } from '../display';
+import { EditableMesh } from './mesh';
 
-let selected: THREE.Mesh | null = null;
-let selectedEdges: [number, number][] = [];
-let vertexPositions: THREE.Vector3[] = [];
 let enabled = false;
+let selected: EditableMesh | null = null;
+let selectedEdges: [number, number][] = [];
 
 let transform: TransformControls;
 let dummy = new THREE.Object3D();
@@ -34,7 +34,7 @@ export function init(sharedDummy: THREE.Object3D, transformControl: TransformCon
   let mouseStart = new THREE.Vector2();
   let mouseTime = 0;
 
-  container.addEventListener("pointerdown", (e) => {
+  container.addEventListener('pointerdown', (e) => {
     if (!enabled) return;
     mouseTime = performance.now();
     mouseStart.set(e.clientX, e.clientY);
@@ -43,44 +43,35 @@ export function init(sharedDummy: THREE.Object3D, transformControl: TransformCon
   container.addEventListener('pointerup', (e) => {
     if (!enabled || !selected) return;
     const delta = new THREE.Vector2(e.clientX, e.clientY).sub(mouseStart);
-    const tooFar = delta.lengthSq() > 4;
-    const tooSlow = performance.now() - mouseTime > 200;
-    if (tooFar || tooSlow) return;
+    if (delta.lengthSq() > 4 || performance.now() - mouseTime > 200) return;
 
-    const ray = createRaycastFromScreen(
-      Viewport.camera,
-      new THREE.Vector2(e.clientX, e.clientY),
-      Viewport.renderer.domElement.getBoundingClientRect()
-    );
-
-    const hits = ray.intersectObject(selected, false);
+    const ray = createRaycastFromScreen(Viewport.camera, new THREE.Vector2(e.clientX, e.clientY), Viewport.renderer.domElement.getBoundingClientRect());
+    const hits = ray.intersectObject(selected.mesh, false);
     if (hits.length === 0) return drop();
 
-    const geometry = selected.geometry as THREE.BufferGeometry;
-    const index = geometry.getIndex();
-    if (!index) return;
-
     const faceIndex = hits[0].faceIndex!;
-    const i0 = index.getX(faceIndex * 3);
-    const i1 = index.getX(faceIndex * 3 + 1);
-    const i2 = index.getX(faceIndex * 3 + 2);
+    const [i0, i1, i2] = selected.faces[faceIndex];
 
-    const edgeCandidates: [number, number][] = [
+    const tri = [
       [i0, i1],
       [i1, i2],
-      [i2, i0],
-    ];
-    const closest = findClosestEdge(edgeCandidates, vertexPositions, rayToLocalSpace(ray.ray,selected), 0.2);
-    if(closest === null) {
+      [i2, i0]
+    ] as [number, number][];
+
+    const rayLocal = rayToLocalSpace(ray.ray, selected.mesh);
+    const closest = findClosestEdge(tri, selected.vertices, rayLocal, 0.2);
+    if (closest === null) {
       selectedEdges = [];
       updateTransformOrigin();
       return;
     }
+
     if (!hasEdge(closest)) {
       selectedEdges.push(closest);
     } else {
-      const index = selectedEdges.indexOf(closest);
-      selectedEdges.splice(index, 1);
+      selectedEdges = selectedEdges.filter(([a, b]) =>
+        !(a === closest[0] && b === closest[1]) && !(a === closest[1] && b === closest[0])
+      );
     }
 
     updateTransformOrigin();
@@ -91,46 +82,40 @@ export function enable(flag: boolean) {
   enabled = flag;
   if (!enabled) {
     clearDisplay();
-  } else {
-    if (selected) {
-      vertexPositions = getVertices(selected);
-      updateTransformOrigin();
-    }
+  } else if (selected) {
+    updateTransformOrigin();
   }
 }
 
-export function select(obj: THREE.Object3D) {
-  if (!(obj instanceof THREE.Mesh)) return;
-  const index = obj.geometry.getIndex();
+export function select(mesh: THREE.Mesh) {
+  if (!(mesh instanceof THREE.Mesh)) return;
+  const index = mesh.geometry.getIndex();
   if (!index) {
-    toIndexed(obj);
-    console.warn("Automatically indexing geometry");
+    toIndexed(mesh);
+    console.warn('Automatically indexing geometry');
   }
-  selected = obj;
-  vertexPositions = getVertices(selected);
+  const editable = new EditableMesh(mesh);
+  editable.rebuildFromGeometry();
+  selected = editable;
   updateTransformOrigin();
 }
 
 export function drop() {
   selected = null;
   selectedEdges = [];
-  vertexPositions = [];
   clearDisplay();
 }
 
 function clearDisplay() {
   transform.detach();
-
   if (edgeDisplay) {
     Viewport.removeDev(edgeDisplay);
     edgeDisplay = null;
   }
 }
 
-function hasEdge([a, b]: [number, number]): boolean {
-  return selectedEdges.some(([x, y]) =>
-    (x === a && y === b) || (x === b && y === a)
-  );
+function hasEdge([a, b]: [number, number]) {
+  return selectedEdges.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 }
 
 function updateTransformOrigin() {
@@ -141,14 +126,12 @@ function updateTransformOrigin() {
 
   const center = new THREE.Vector3();
   const edgeSegments: [THREE.Vector3, THREE.Vector3][] = [];
-  const edgePoints: THREE.Vector3[] = [];
 
   for (const [i0, i1] of selectedEdges) {
-    const a = vertexPositions[i0];
-    const b = vertexPositions[i1];
+    const a = selected.vertices[i0];
+    const b = selected.vertices[i1];
     center.add(a).add(b);
     edgeSegments.push([a.clone(), b.clone()]);
-    edgePoints.push(a.clone(), b.clone());
   }
 
   center.divideScalar(selectedEdges.length * 2);
@@ -164,11 +147,8 @@ function updateTransformOrigin() {
 function onTransformMove() {
   if (!selected || selectedEdges.length === 0) return;
 
-  const geometry = selected.geometry as THREE.BufferGeometry;
-  const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-
   const worldDelta = dummy.position.clone().sub(dummyOrigin);
-  const localDelta = selected.worldToLocal(selected.localToWorld(worldDelta.clone()));
+  const localDelta = selected.mesh.worldToLocal(selected.mesh.localToWorld(worldDelta.clone()));
   dummyOrigin.copy(dummy.position);
 
   const moved = new Set<number>();
@@ -177,16 +157,10 @@ function onTransformMove() {
       if (moved.has(i)) continue;
       moved.add(i);
 
-      const local = selected.worldToLocal(vertexPositions[i].clone());
-      vertexPositions[i].add(worldDelta);
-      const updated = local.add(localDelta);
-      posAttr.setXYZ(i, updated.x, updated.y, updated.z);
+      selected.vertices[i].add(localDelta);
+      selected.setVertex(i, selected.vertices[i]);
     }
   }
-
-  posAttr.needsUpdate = true;
-  geometry.computeBoundingBox();
-  geometry.computeBoundingSphere();
 
   updateTransformOrigin();
 }
