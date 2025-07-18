@@ -6,12 +6,14 @@ import { Viewport } from './viewport';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import * as THREE from 'three';
 import { Mode } from './mode';
+import { ModelingTool } from './modeling/tools';
 
 let transform!: TransformControls;
 let currentMode: 'vertex' | 'edge' | 'face' = 'vertex';
 let modelModes!:Function[];
 let modelTools!:Function[];
 let selected:THREE.Mesh|null;
+let tool:ModelingTool = Vertex.tool;
 
 export const Modeling = {
   vertexPositions: [] as THREE.Vector3[],
@@ -49,7 +51,6 @@ export const Modeling = {
     ]);
 
     modelTools = getButtons(".model-tool button", [
-      () => unset(),
       () => extrude(),
       () => inset(),
       () => bevel(),
@@ -64,9 +65,9 @@ export const Modeling = {
     currentMode = mode;
     transform.detach();
     switch (currentMode) {
-      case 'vertex': Vertex.enable(true); Edge.enable(false); Face.enable(false); break;
-      case 'edge': Vertex.enable(false); Edge.enable(true); Face.enable(false); break;
-      case 'face': Vertex.enable(false); Edge.enable(false); Face.enable(true); break;
+      case 'vertex': Vertex.enable(true); Edge.enable(false); Face.enable(false); tool = Vertex.tool; break;
+      case 'edge': Vertex.enable(false); Edge.enable(true); Face.enable(false); tool = Edge.tool; break;
+      case 'face': Vertex.enable(false); Edge.enable(false); Face.enable(true); tool = Face.tool; break;
     }
     if(selected) this.select(selected);
   },
@@ -93,20 +94,18 @@ export const Modeling = {
   edge() { modelModes[1]() },
   face() { modelModes[2]() },
 
-  unset() { modelTools[0]() },
-  extrude() { modelTools[1]() },
-  inset() { modelTools[2]() },
-  bevel() { modelTools[3]() },
-  knife() { modelTools[4]() },
-  merge() { modelTools[5]() }
+  extrude() { modelTools[0]() },
+  inset() { modelTools[1]() },
+  bevel() { modelTools[2]() },
+  knife() { modelTools[3]() },
+  merge() { modelTools[4]() }
 };
 
 function vertex() { Modeling.setMode('vertex'); }
 function edge() { Modeling.setMode('edge'); }
 function face() { Modeling.setMode('face'); }
 
-function unset() { document.dispatchEvent(new CustomEvent("unset")) }
-function extrude() {  document.dispatchEvent(new CustomEvent("extrude")) }
+function extrude() { tool?.extrude?.() }
 function inset() {  document.dispatchEvent(new CustomEvent("inset")) }
 function bevel() {  document.dispatchEvent(new CustomEvent("bevel")) }
 function knife() {  document.dispatchEvent(new CustomEvent("knife")) }

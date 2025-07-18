@@ -5,6 +5,7 @@ import { createRayFromScreen, distanceFromPointsToRay } from '../util';
 import { createSelectionMarkers, createVertexDisplay, updateVertexDisplay } from '../display';
 import { TransformControls } from 'three/examples/jsm/Addons.js';
 import { EditableMesh } from './mesh';
+import { ModelingTool } from './tools';
 
 let enabled = false;
 let selected: EditableMesh | null = null;
@@ -230,4 +231,6 @@ function clearSelectionTimer() {
     clearTimeout(selectTimer);
     selectTimer = null;
   }
+}
+export const tool:ModelingTool = {
 }

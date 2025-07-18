@@ -115,7 +115,22 @@ export class EditableMesh {
   getSelectedVertexPositions(): THREE.Vector3[] {
     return Array.from(this.selectedVertices).map(i => this.vertices[i]);
   }
+  addVertex(position: THREE.Vector3): number {
+    const logicalIndex = this.vertices.length;
+    this.vertices.push(position.clone());
 
+    const posAttr = this.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const newCount = posAttr.count + 1;
+
+    const newPos = new Float32Array(newCount * 3);
+    newPos.set(posAttr.array);
+    newPos.set([position.x, position.y, position.z], posAttr.count * 3);
+
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(newPos, 3));
+    this.vertMap.set(newCount - 1, logicalIndex);
+
+    return logicalIndex;
+  }
   moveVertices(indices: number[], delta: THREE.Vector3): void {
     for (const i of indices) {
       this.vertices[i].add(delta);
@@ -166,16 +181,94 @@ export class EditableMesh {
     this.geometry.computeBoundingBox();
     this.geometry.computeBoundingSphere();
   }
+  rebuild() {
+    const geometry = this.geometry;
+    const mesh = this;
+
+    const position = new Float32Array(mesh.vertices.length * 3);
+    for (let i = 0; i < mesh.vertices.length; i++) {
+      const v = mesh.vertices[i];
+      position[i * 3 + 0] = v.x;
+      position[i * 3 + 1] = v.y;
+      position[i * 3 + 2] = v.z;
+    }
+
+    const indices: number[] = [];
+    for (const [a, b, c] of mesh.faces) {
+      indices.push(a, b, c);
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    geometry.attributes.position.needsUpdate = true;
+    geometry.index!.needsUpdate = true;
+  }
 
   getSelectedEdges(): [THREE.Vector3, THREE.Vector3][] {
     return Array.from(this.selectedEdges).map(k => this.getEdgeVertices(k));
   }
-  getFaceVertexIndices(index: number): [number, number, number] {
+
+  // ==== Face ========
+  addFace(a: number, b: number, c: number): number {
+    this.faces.push([a, b, c]);
+
+    this.addEdge(a, b);
+    this.addEdge(b, c);
+    this.addEdge(c, a);
+
+    let indexAttr = this.geometry.getIndex()!;
+    const oldCount = indexAttr.count || 0;
+    const newIndices = new Uint32Array(oldCount + 3);
+
+    newIndices.set(indexAttr.array);
+    newIndices.set([a, b, c], oldCount);
+
+    this.geometry.setIndex(new THREE.BufferAttribute(newIndices, 1));
+    return this.faces.length - 1;
+  }
+  deleteFace(index: number) {
+    const face = this.faces[index];
+    if (!face) return;
+
+    // Remove edges if no other face uses them
+    const [a, b, c] = face;
+    this.faces.splice(index, 1);
+
+    const removeEdge = (i: number, j: number) => {
+      const key = [Math.min(i, j), Math.max(i, j)].join(":");
+      this.edges.delete(key);
+    };
+
+    removeEdge(a, b);
+    removeEdge(b, c);
+    removeEdge(c, a);
+  }
+  getFaceVertexIndices(index: number): Face {
     return this.faces[index];
   }
 
   clearSelection() {
     this.selectedVertices.clear();
     this.selectedEdges.clear();
+  }
+  computeFlatNormals() {
+    const normals: THREE.Vector3[] = this.vertices.map(() => new THREE.Vector3());
+
+    for (const [a, b, c] of this.faces) {
+      const v0 = this.vertices[a];
+      const v1 = this.vertices[b];
+      const v2 = this.vertices[c];
+
+      const normal = new THREE.Vector3()
+        .crossVectors(v1.clone().sub(v0), v2.clone().sub(v0))
+        .normalize();
+
+      normals[a].add(normal);
+      normals[b].add(normal);
+      normals[c].add(normal);
+    }
+
+    return normals.map(n => n.normalize());
   }
 }

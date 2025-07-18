@@ -4,6 +4,7 @@ import { TransformControls, LineSegments2 } from 'three/examples/jsm/Addons.js';
 import { createRaycastFromScreen, findClosestEdge, rayToLocalSpace, toIndexed } from '../util';
 import { createEdgeDisplay } from '../display';
 import { EditableMesh } from './mesh';
+import { ModelingTool } from './tools';
 
 let enabled = false;
 let selected: EditableMesh | null = null;
@@ -163,4 +164,7 @@ function onTransformMove() {
   }
 
   updateTransformOrigin();
+}
+
+export const tool:ModelingTool = {
 }
