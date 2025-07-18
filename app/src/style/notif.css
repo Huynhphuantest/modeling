@@ -1,0 +1,56 @@
+#notif-container {
+    position:absolute;
+    display:flex;
+    flex-direction: column;
+    top:var(--spc-lg);
+    right:0;
+    padding:var(--spc-sm);
+    background:blue;
+    width:fit-content;
+    z-index: 15;
+}
+#notif-container > div {
+    position:relative;
+    min-width: 20rem;
+    padding: var(--spc-sm) var(--spc-md);
+    color:var(--scn-10);
+    --color: #ffffff;
+    display:flex;
+    flex-direction: column;
+}
+#notif-container .content {
+    position:relative;
+    display: flex;
+    gap:var(--spc-sm);
+    background:var(--scn-80);
+    padding:var(--spc-sm);
+}
+#notif-container .icon {
+    font-size: 3rem;
+    color:var(--color);
+}
+#notif-container .text {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+}
+#notif-container .title {
+    font-weight:600;
+}
+#notif-container .desc {
+    font-weight:400;
+}
+#notif-container .bar {
+    align-self: flex-end;
+    width:100%;
+    height: 2px;
+    background:var(--color);
+}
+#notif-container .cover {
+    top:0;
+    right:0;
+    width:100%;
+    position:absolute;
+    height:100%;
+    background:var(--color);
+}

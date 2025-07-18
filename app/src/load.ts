@@ -7,6 +7,7 @@ fetch('/template/panels.html')
         await import("./script.ts");
         await import("./panel/spawn.ts");
         await import("./panel/mode.ts");
+        await import("./panel/notif.ts");
         import("./component/dropdown.ts").then(e => {
             e.Dropdown.attachAllIn(document.body);
             document.body.addEventListener("click", () => e.Dropdown.closeAll(document.body));
